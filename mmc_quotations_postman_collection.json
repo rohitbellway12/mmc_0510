@@ -1,0 +1,538 @@
+{
+	"info": {
+		"_postman_id": "9d8e52a1-8d23-4521-9e8c-8f319b22a014",
+		"name": "MMC - Quotations & Booking Estimates API",
+		"description": "Postman collection for Provider-initiated quotations/estimates on behalf of customers for both Automotive Services AND Car Hire & Chauffeur Services.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Provider - Quotation & Estimates",
+			"item": [
+				{
+					"name": "1. Search Customer (Autocomplete)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/estimate/search-customer?query=Rahul",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"estimate",
+								"search-customer"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "Rahul",
+									"description": "Search by name, phone or email"
+								}
+							]
+						},
+						"description": "Search existing customers by name, phone or email for quick auto-fill."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Subscribed Services (Automotive Services)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/estimate/services",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"estimate",
+								"services"
+							]
+						},
+						"description": "Returns services provider has subscribed to in Available Services with custom configured prices."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Provider Fleet Cars (Car Hire & Chauffeur)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/estimate/cars",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"estimate",
+								"cars"
+							]
+						},
+						"description": "Returns provider's active fleet cars (daily_rate, hourly_rate, pricing_type, model, brand, reg) to create Car Hire / Chauffeur quotes."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Create Car Hire / Chauffeur Quotation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "module_type",
+									"value": "car_hire",
+									"type": "text",
+									"description": "car_hire or chauffeur"
+								},
+								{
+									"key": "customer_name",
+									"value": "Rahul Sharma",
+									"type": "text"
+								},
+								{
+									"key": "customer_phone",
+									"value": "+447123456789",
+									"type": "text"
+								},
+								{
+									"key": "customer_email",
+									"value": "rahul@example.com",
+									"type": "text"
+								},
+								{
+									"key": "car_id",
+									"value": "16",
+									"type": "text",
+									"description": "ID from provider cars list"
+								},
+								{
+									"key": "pickup_type",
+									"value": "chauffeur",
+									"type": "text",
+									"description": "self | delivery | chauffeur"
+								},
+								{
+									"key": "start_date",
+									"value": "2026-03-15",
+									"type": "text"
+								},
+								{
+									"key": "end_date",
+									"value": "2026-03-16",
+									"type": "text"
+								},
+								{
+									"key": "pickup_time",
+									"value": "10:00 AM",
+									"type": "text"
+								},
+								{
+									"key": "drop_time",
+									"value": "10:00 PM",
+									"type": "text"
+								},
+								{
+									"key": "pickup_location",
+									"value": "Vijay Nagar, Indore",
+									"type": "text",
+									"description": "Required if pickup_type is chauffeur"
+								},
+								{
+									"key": "drop_location",
+									"value": "Indore Airport",
+									"type": "text",
+									"description": "Required if pickup_type is chauffeur"
+								},
+								{
+									"key": "delivery_address",
+									"value": "",
+									"type": "text",
+									"description": "Required if pickup_type is delivery"
+								},
+								{
+									"key": "price",
+									"value": "250.00",
+									"type": "text",
+									"description": "Agreed / Quoted price"
+								},
+								{
+									"key": "notes",
+									"value": "Includes fuel, tolls, and dedicated chauffeur.",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/estimate/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"estimate",
+								"create"
+							]
+						},
+						"description": "Provider creates a Car Hire or Chauffeur quotation for a customer with their fleet vehicle."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Create Garage / Automotive Repair Quotation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "module_type",
+									"value": "general",
+									"type": "text"
+								},
+								{
+									"key": "customer_name",
+									"value": "Rahul Sharma",
+									"type": "text"
+								},
+								{
+									"key": "customer_phone",
+									"value": "+447123456789",
+									"type": "text"
+								},
+								{
+									"key": "customer_email",
+									"value": "rahul@example.com",
+									"type": "text"
+								},
+								{
+									"key": "service_id",
+									"value": "1bfb175c-91a2-4c80-9690-c362320665d9",
+									"type": "text"
+								},
+								{
+									"key": "price",
+									"value": "175.00",
+									"type": "text"
+								},
+								{
+									"key": "service_schedule",
+									"value": "2026-09-26 14:30:00",
+									"type": "text"
+								},
+								{
+									"key": "car_model",
+									"value": "Hyundai Creta 2022",
+									"type": "text"
+								},
+								{
+									"key": "car_registration_number",
+									"value": "MH 12 AB 1234",
+									"type": "text"
+								},
+								{
+									"key": "damage_description",
+									"value": "Front bumper scratch repair and painting.",
+									"type": "text"
+								},
+								{
+									"key": "notes",
+									"value": "Includes OEM paint match.",
+									"type": "text"
+								},
+								{
+									"key": "car_image",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/estimate/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"estimate",
+								"create"
+							]
+						},
+						"description": "Provider creates a Garage / Automotive Repair quote for customer's vehicle."
+					},
+					"response": []
+				},
+				{
+					"name": "6. List Quotations / Estimates",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/estimate/list?status=all&limit=15&offset=1&search=",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"estimate",
+								"list"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "all"
+								},
+								{
+									"key": "limit",
+									"value": "15"
+								},
+								{
+									"key": "offset",
+									"value": "1"
+								},
+								{
+									"key": "search",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "7. View Single Quotation Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/estimate/details/{{estimate_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"estimate",
+								"details",
+								"{{estimate_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "8. Cancel Quotation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/estimate/cancel/{{estimate_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"estimate",
+								"cancel",
+								"{{estimate_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Customer - Quotation & Deep Link Booking",
+			"item": [
+				{
+					"name": "1. Get Quotation Details (Deep Link Landing)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/estimate/{{link_token}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"estimate",
+								"{{link_token}}"
+							]
+						},
+						"description": "Public/Unauthenticated API called when customer clicks deep link (mmc://estimate/EST-xxx). Returns full quote details for both car hire and garage services."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Accept Quotation & Create Booking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"description": "Optional: If customer is logged in"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"link_token\": \"{{link_token}}\",\n    \"payment_method\": \"cash_after_service\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/estimate/accept",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"estimate",
+								"accept"
+							]
+						},
+						"description": "Customer accepts quotation. If car hire/chauffeur, creates CarBooking and mirrors to Booking. If garage service, creates standard Booking."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/mmc",
+			"type": "string"
+		},
+		{
+			"key": "provider_token",
+			"value": "YOUR_PROVIDER_AUTH_TOKEN",
+			"type": "string"
+		},
+		{
+			"key": "customer_token",
+			"value": "YOUR_CUSTOMER_AUTH_TOKEN",
+			"type": "string"
+		},
+		{
+			"key": "estimate_id",
+			"value": "EST-10001",
+			"type": "string"
+		},
+		{
+			"key": "link_token",
+			"value": "EST-10001",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,413 @@
+{
+	"info": {
+		"_postman_id": "8f4b238a-1a22-49bb-9c2b-91b5c87a5522",
+		"name": "MMC - Notifications & FCM APIs (Customer & Provider)",
+		"description": "Complete Postman collection for Notifications (In-App Notification Lists) and Firebase FCM Token Registration for both Customer and Provider mobile apps in MMC.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Customer Notifications",
+			"item": [
+				{
+					"name": "1.1 Get Customer Notification List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/notification?limit=10&offset=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"notification"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of records per page"
+								},
+								{
+									"key": "offset",
+									"value": "1",
+									"description": "Page number (1, 2, ...)"
+								}
+							]
+						},
+						"description": "Fetches in-app notification list for the customer including booking status updates, promotions, and announcements."
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Update Customer FCM Token",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fcm_token\": \"{{sample_fcm_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/update-fcm-token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"update-fcm-token"
+							]
+						},
+						"description": "Registers or refreshes the customer's Firebase FCM token for receiving push notifications on their physical device."
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Customer Login with FCM Token (Auto-Save)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email_or_phone\": \"mmc@gmail.com\",\n    \"password\": \"12345678\",\n    \"type\": \"email\",\n    \"guest_id\": \"d3b07384-d113-40e1-bb5c-197e41d27993\",\n    \"fcm_token\": \"{{sample_fcm_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Customer login with password. Passing fcm_token will automatically save the token to the users table."
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 Customer OTP Login (Request OTP)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"mmc@gmail.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/auth/otp-login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"auth",
+								"otp-login"
+							]
+						},
+						"description": "Step 1: Request 4-digit OTP sent to customer's email or phone."
+					},
+					"response": []
+				},
+				{
+					"name": "1.5 Customer OTP Login (Verify & Save FCM Token)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"mmc@gmail.com\",\n    \"otp\": \"1234\",\n    \"fcm_token\": \"{{sample_fcm_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/auth/otp-login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"auth",
+								"otp-login"
+							]
+						},
+						"description": "Step 2: Verify OTP and save FCM device token simultaneously."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Provider Notifications",
+			"item": [
+				{
+					"name": "2.1 Get Provider Notification List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/notifications?limit=10&offset=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"notifications"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of records per page"
+								},
+								{
+									"key": "offset",
+									"value": "1",
+									"description": "Page number (1, 2, ...)"
+								}
+							]
+						},
+						"description": "Fetches provider in-app notification list including new booking assignments, status updates, withdrawals, and announcements."
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Update Provider FCM Token",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fcm_token\": \"{{sample_fcm_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/update/fcm-token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"update",
+								"fcm-token"
+							]
+						},
+						"description": "Registers or refreshes the provider's Firebase FCM token for receiving push notifications on their physical device."
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Provider Login with FCM Token (Auto-Save)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email_or_phone\": \"rohitbellway12@gmail.com\",\n    \"password\": \"12345678\",\n    \"type\": \"email\",\n    \"fcm_token\": \"{{sample_fcm_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Provider login with password. Passing fcm_token will automatically save the token to the users table."
+					},
+					"response": []
+				},
+				{
+					"name": "2.4 Provider OTP Login (Request OTP)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"rohitbellway12@gmail.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/auth/otp-login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"auth",
+								"otp-login"
+							]
+						},
+						"description": "Step 1: Request 4-digit OTP sent to provider's email or phone."
+					},
+					"response": []
+				},
+				{
+					"name": "2.5 Provider OTP Login (Verify & Save FCM Token)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"rohitbellway12@gmail.com\",\n    \"otp\": \"1234\",\n    \"fcm_token\": \"{{sample_fcm_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/auth/otp-login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"auth",
+								"otp-login"
+							]
+						},
+						"description": "Step 2: Verify OTP and save FCM device token simultaneously for provider."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/mmc"
+		},
+		{
+			"key": "customer_token",
+			"value": "YOUR_CUSTOMER_BEARER_TOKEN"
+		},
+		{
+			"key": "provider_token",
+			"value": "YOUR_PROVIDER_BEARER_TOKEN"
+		},
+		{
+			"key": "sample_fcm_token",
+			"value": "fXyZ1234567890abcdef_example_firebase_device_token"
+		}
+	]
+}

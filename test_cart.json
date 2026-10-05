@@ -1,0 +1,16 @@
+{
+    "provider_id": "f32d2b88-0014-4f8b-909f-097f23b13af0",
+    "is_terms_accepted": 1,
+    "items": [
+        {
+            "service_id": "16c0655b-38ca-412f-94d1-1db5463cf70c",
+            "variant_key": "Basic",
+            "quantity": 1
+        },
+        {
+            "service_id": "23ffc837-0b76-4375-ba8f-273e80434c02",
+            "variant_key": "Prime",
+            "quantity": 1
+        }
+    ]
+}

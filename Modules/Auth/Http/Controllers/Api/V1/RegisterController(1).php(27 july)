@@ -1,0 +1,1130 @@
+<?php
+
+namespace Modules\Auth\Http\Controllers\Api\V1;
+
+use Modules\CategoryManagement\Entities\Category;
+use Modules\ProviderManagement\Entities\SubscribedService;
+use Modules\BusinessSettingsModule\Entities\BusinessSettings;
+
+use Grimzy\LaravelMysqlSpatial\Types\Point;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use Modules\BusinessSettingsModule\Entities\SubscriptionPackage;
+use Modules\PaymentModule\Entities\Setting;
+use Modules\PaymentModule\Traits\SubscriptionTrait;
+use Modules\PromotionManagement\Entities\PushNotification;
+use Modules\PromotionManagement\Entities\PushNotificationUser;
+use Modules\ProviderManagement\Emails\NewJoiningRequestMail;
+use Modules\ProviderManagement\Entities\Provider;
+use Modules\ProviderManagement\Entities\ProviderSetting;
+use Modules\UserManagement\Entities\Serviceman;
+use Modules\UserManagement\Entities\User;
+
+class RegisterController extends Controller
+{
+    protected Provider $provider;
+    protected User $owner;
+    protected User $user;
+    protected Serviceman $serviceman;
+    private SubscriptionPackage $subscriptionPackage;
+
+    use SubscriptionTrait;
+
+    public function __construct(Provider $provider, User $owner, User $user, Serviceman $serviceman, SubscriptionPackage $subscriptionPackage)
+    {
+        $this->provider = $provider;
+        $this->owner = $owner;
+        $this->user = $user;
+        $this->serviceman = $serviceman;
+        $this->subscriptionPackage = $subscriptionPackage;
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function customerRegister(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'email' => 'required|email',
+            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
+            'password' => 'required|min:8',
+            'gender' => 'in:male,female,others',
+            'confirm_password' => 'required|same:password',
+            'profile_image' => 'image|mimes:jpeg,jpg,png,gif|max:10000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 403);
+        }
+
+        if (User::where('email', $request['email'])->exists()) {
+            return response()->json(response_formatter(DEFAULT_400, null, [["error_code" => "email", "message" => translate('Email already taken')]]), 400);
+        }
+        if (User::where('phone', $request['phone'])->exists()) {
+            return response()->json(response_formatter(DEFAULT_400, null, [["error_code" => "phone", "message" => translate('Phone already taken')]]), 400);
+        }
+
+        $user = $this->user;
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
+        $user->profile_image = $request->has('profile_image') ? file_uploader('user/profile_image/', 'png', $request->profile_image) : 'default.png';
+        $user->date_of_birth = $request->date_of_birth;
+        $user->gender = $request->gender ?? 'male';
+        $user->password = bcrypt($request->password);
+        $user->user_type = 'customer';
+        $user->is_active = 1;
+
+        if ($request->has('referral_code')) {
+            $customerReferralEarning = business_config('customer_referral_earning', 'customer_config')->live_values ?? 0;
+            $amount = business_config('referral_value_per_currency_unit', 'customer_config')->live_values ?? 0;
+            $userWhoRerreded = User::where('ref_code', $request['referral_code'])->first();
+
+            if (is_null($userWhoRerreded)) {
+                return response()->json(response_formatter(REFERRAL_CODE_INVALID_400), 404);
+            }
+
+            if ($customerReferralEarning == 1 && isset($userWhoRerreded)) {
+
+                referralEarningTransactionDuringRegistration($userWhoRerreded, $amount);
+
+                $userRefund = isNotificationActive(null, 'refer_earn', 'notification', 'user');
+                $title = get_push_notification_message('referral_code_used', 'customer_notification', $user?->current_language_key);
+                if ($title && $userWhoRerreded->fcm_token && $userRefund) {
+                    device_notification($userWhoRerreded->fcm_token, $title, null, null, null, 'general', null, $userWhoRerreded->id);
+                }
+
+                $pushNotification = new PushNotification();
+                $pushNotification->title = translate('Your Referral Code Has Been Used!');
+                $pushNotification->description = translate("Congratulations! Your referral code was used by a new user. Get ready to earn rewards when they complete their first booking.");
+                $pushNotification->to_users = ['customer'];
+                $pushNotification->zone_ids = [config('zone_id') == null ? $request['zone_id'] : config('zone_id')];
+                $pushNotification->is_active = 1;
+                $pushNotification->cover_image = asset('/public/assets/admin/img/referral_2.png');
+                $pushNotification->save();
+
+                $pushNotificationUser = new PushNotificationUser();
+                $pushNotificationUser->push_notification_id = $pushNotification->id;
+                $pushNotificationUser->user_id = $userWhoRerreded->id;
+                $pushNotificationUser->save();
+            }
+        }
+
+        $user->referred_by = $userWhoRerreded->id ?? null;
+        $user->save();
+
+        $phoneVerification = checkActiveSMSGatewayCount();
+        $emailVerification = login_setup('email_verification')?->value ?? 0;
+
+        if (!$phoneVerification && !$emailVerification) {
+            $loginData = ['token' => $user->createToken(CUSTOMER_PANEL_ACCESS)->accessToken, 'is_active' => $user['is_active']];
+            return response()->json(response_formatter(REGISTRATION_200, $loginData), 200);
+        }
+
+        return response()->json(response_formatter(REGISTRATION_200), 200);
+    }
+
+
+    /**
+     * Store a newly created resource in storage.
+     * @param Request $request
+     * @return JsonResponse
+     */
+    // public function providerRegistrationStep1(Request $request): JsonResponse
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'first_name' => 'required',
+    //         'last_name' => 'required',
+    //         'email' => 'required|email|unique:users,email',
+    //         'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|unique:users,phone',
+    //         'password' => 'required|min:8',
+    //         'confirm_password' => 'required|same:password',
+    //         'zone_id' => 'required|uuid',
+    //         'latitude' => 'required',
+    //         'longitude' => 'required',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+    //     }
+
+    //     $user = $this->user;
+    //     $user->first_name = $request->first_name;
+    //     $user->last_name = $request->last_name;
+    //     $user->email = $request->email;
+    //     $user->phone = $request->phone;
+    //     $user->password = bcrypt($request->password);
+    //     $user->user_type = 'provider-admin';
+    //     $user->is_active = 0;
+    //     $user->is_phone_verified = 0;
+    //     $user->save();
+
+    //     $provider = $this->provider;
+    //     $provider->user_id = $user->id;
+    //     $provider->zone_id = $request->zone_id;
+    //     $provider->coordinates = ['latitude' => $request->latitude, 'longitude' => $request->longitude];
+    //     $provider->is_active = 0;
+    //     $provider->is_approved = 0;
+    //     $provider->save();
+
+    //     $token = rand(1000, 9999);
+    //     DB::table('user_verifications')->insert([
+    //         'identity' => $request['phone'],
+    //         'identity_type' => 'phone',
+    //         'otp' => $token,
+    //         'expires_at' => now()->addMinutes(5),
+    //         'created_at' => now(),
+    //         'updated_at' => now(),
+    //     ]);
+
+    //     $publishedStatus = 0;
+    //     $paymentPublishedStatus = config('get_payment_publish_status');
+    //     if (isset($paymentPublishedStatus[0]['is_published'])) {
+    //         $publishedStatus = $paymentPublishedStatus[0]['is_published'];
+    //     }
+
+    //     if ($publishedStatus == 1) {
+    //         $response = \Modules\PaymentModule\Traits\SmsGateway::send($request['phone'], $token);
+    //     } else {
+    //         \Modules\SMSModule\Lib\SMS_gateway::send($request['phone'], $token);
+    //     }
+
+    //     return response()->json(response_formatter(DEFAULT_SENT_OTP_200, ['otp' => $token]), 200);
+    // }
+
+    // public function providerVerification(Request $request): JsonResponse
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'identity' => 'required',
+    //         'otp' => 'required'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+    //     }
+
+
+    //     $data = DB::table('user_verifications')
+    //         ->where('identity', $request['identity'])
+    //         ->where(['otp' => $request['otp']])->first();
+
+    //     if (isset($data)) {
+    //         $user = $this->user->where('user_type', 'provider-admin')
+    //             ->where('phone', $request['identity'])
+    //             ->first();
+
+    //         if ($user) {
+    //             $user->is_phone_verified = 1;
+    //             $user->is_active = 1; // Activate user so they can login
+    //             $user->save();
+
+    //             // Check if Provider exists, if not create one
+    //             $provider = $this->provider->where('user_id', $user->id)->first();
+    //             if (!$provider) {
+    //                 $provider = new $this->provider();
+    //                 $provider->user_id = $user->id;
+    //                 $provider->zone_id = $request->zone_id ?? config('zone_id'); // Default or provided
+    //                 $provider->coordinates = ['latitude' => 0, 'longitude' => 0]; // Default
+    //                 $provider->is_active = 0;
+    //                 $provider->is_approved = 0; // Not approved yet
+    //                 $provider->save();
+    //             }
+
+    //             DB::table('user_verifications')
+    //                 ->where('identity', $request['identity'])
+    //                 ->where(['otp' => $request['otp']])->delete();
+
+    //             $token = $user->createToken(PROVIDER_PANEL_ACCESS)->accessToken;
+
+    //             return response()->json(response_formatter(DEFAULT_VERIFIED_200, ['token' => $token, 'is_active' => $user->is_active]), 200);
+    //         }
+    //     }
+
+    //     return response()->json(response_formatter(DEFAULT_404), 200);
+    // }
+   //28-july-2026
+    // public function providerRegistrationStep1(Request $request): JsonResponse
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'first_name' => 'required',
+    //         'last_name' => 'required',
+    //         'email' => 'required|email|unique:users,email',
+    //         'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|unique:users,phone',
+    //         'password' => 'required|min:8',
+    //         'confirm_password' => 'required|same:password',
+    //         'zone_id' => 'required|uuid',
+    //         'latitude' => 'required',
+    //         'longitude' => 'required',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+    //     }
+
+    //     $user = $this->user;
+    //     $user->first_name = $request->first_name;
+    //     $user->last_name = $request->last_name;
+    //     $user->email = $request->email;
+    //     $user->phone = $request->phone;
+    //     $user->password = bcrypt($request->password);
+    //     $user->user_type = 'provider-admin';
+    //     $user->is_active = 0;
+    //     $user->is_phone_verified = 0;
+    //     $user->save();
+
+
+    //     $provider = $this->provider;
+    //     $provider->user_id = $user->id;
+    //     $provider->zone_id = $request->zone_id;
+    //     $provider->coordinates = ['latitude' => $request->latitude, 'longitude' => $request->longitude];
+    //     $provider->is_active = 0;
+    //     $provider->is_approved = 0;
+    //     $provider->save();
+
+
+    //     $token = rand(1000, 9999);
+    //     DB::table('user_verifications')->insert([
+    //         'identity' => $request['phone'],
+    //         'identity_type' => 'phone',
+    //         'otp' => $token,
+    //         'expires_at' => now()->addMinutes(5),
+    //         'created_at' => now(),
+    //         'updated_at' => now(),
+    //     ]);
+
+    //     $publishedStatus = 0;
+    //     $paymentPublishedStatus = config('get_payment_publish_status');
+    //     if (isset($paymentPublishedStatus[0]['is_published'])) {
+    //         $publishedStatus = $paymentPublishedStatus[0]['is_published'];
+    //     }
+
+    //     if ($publishedStatus == 1) {
+    //         $response = \Modules\PaymentModule\Traits\SmsGateway::send($request['phone'], $token);
+    //     } else {
+    //         \Modules\SMSModule\Lib\SMS_gateway::send($request['phone'], $token);
+    //     }
+
+    //     return response()->json(response_formatter(DEFAULT_SENT_OTP_200, ['otp' => $token]), 200);
+    // }
+    
+    
+    
+    public function providerRegistrationStep1(Request $request): JsonResponse
+{
+    $validator = Validator::make($request->all(), [
+        'first_name' => 'required',
+        'last_name' => 'required',
+        'email' => 'required|email|unique:users,email',
+        'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|unique:users,phone',
+        'password' => 'required|min:8',
+        'confirm_password' => 'required|same:password',
+        'zone_id' => 'required|uuid',
+        'latitude' => 'required',
+        'longitude' => 'required',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+    }
+
+    $user = $this->user;
+    $user->first_name = $request->first_name;
+    $user->last_name = $request->last_name;
+    $user->email = $request->email;
+    $user->phone = $request->phone;
+    $user->password = bcrypt($request->password);
+    $user->user_type = 'provider-admin';
+    $user->is_active = 0;
+    $user->is_phone_verified = 0;
+    $user->is_email_verified = 0;
+    $user->save();
+
+    $provider = $this->provider;
+    $provider->user_id = $user->id;
+    $provider->zone_id = $request->zone_id;
+    $provider->coordinates = ['latitude' => $request->latitude, 'longitude' => $request->longitude];
+    $provider->is_active = 0;
+    $provider->is_approved = 0;
+    $provider->save();
+
+    $token = rand(1000, 9999);
+
+    // Store OTP for phone
+    DB::table('user_verifications')->insert([
+        'identity' => $request['phone'],
+        'identity_type' => 'phone',
+        'otp' => $token,
+        'expires_at' => now()->addMinutes(5),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Store OTP for email
+    DB::table('user_verifications')->insert([
+        'identity' => $request['email'],
+        'identity_type' => 'email',
+        'otp' => $token,
+        'expires_at' => now()->addMinutes(5),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // ===== SEND OTP VIA SMS =====
+    $publishedStatus = 0;
+    $paymentPublishedStatus = config('get_payment_publish_status');
+    if (isset($paymentPublishedStatus[0]['is_published'])) {
+        $publishedStatus = $paymentPublishedStatus[0]['is_published'];
+    }
+
+    if ($publishedStatus == 1) {
+        $response = \Modules\PaymentModule\Traits\SmsGateway::send($request['phone'], $token);
+    } else {
+        \Modules\SMSModule\Lib\SMS_gateway::send($request['phone'], $token);
+    }
+
+    // ===== SEND OTP VIA EMAIL =====
+    try {
+        $emailStatus = business_config('email_config_status', 'email_config')?->live_values ?? 0;
+        
+        if (!$emailStatus) {
+            \Log::warning('Email config is disabled. OTP for ' . $request['email'] . ': ' . $token);
+        } else {
+            if (class_exists(\Modules\UserManagement\Emails\OTPMail::class)) {
+                Mail::to($request['email'])->send(new \Modules\UserManagement\Emails\OTPMail($token));
+            } else {
+                Mail::send([], [], function ($message) use ($request, $token) {
+                    $message->to($request['email'])
+                            ->subject('Your OTP for Registration')
+                            ->setBody("
+                                <html>
+                                    <head>
+                                        <style>
+                                            body { font-family: Arial, sans-serif; }
+                                            .otp { font-size: 32px; font-weight: bold; color: #4a90d9; padding: 20px; background: #f5f5f5; text-align: center; }
+                                        </style>
+                                    </head>
+                                    <body>
+                                        <h2>Registration OTP Verification</h2>
+                                        <p>Hello {$request->first_name},</p>
+                                        <p>Your OTP is:</p>
+                                        <div class='otp'>{$token}</div>
+                                        <p>This OTP is valid for 5 minutes.</p>
+                                        <p>Please do not share this OTP with anyone.</p>
+                                    </body>
+                                </html>
+                            ", 'text/html');
+                });
+            }
+            \Log::info('OTP sent via Email to: ' . $request['email']);
+        }
+    } catch (Exception $exception) {
+        \Log::error('OTP email failed for ' . $request['email'] . ': ' . $exception->getMessage());
+    }
+
+    return response()->json(response_formatter(DEFAULT_SENT_OTP_200, ['otp' => $token]), 200);
+}
+
+    public function providerVerification(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'identity' => 'required',
+            'otp' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+        }
+
+        $data = DB::table('user_verifications')
+            ->where('identity', $request['identity'])
+            ->where(['otp' => $request['otp']])
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (isset($data)) {
+            $user = $this->user->where('user_type', 'provider-admin')
+                ->where('phone', $request['identity'])
+                ->first();
+
+            if ($user) {
+                $user->is_phone_verified = 1;
+                $user->is_active = 1;
+                $user->save();
+
+                /*
+                $provider = $this->provider->where('user_id', $user->id)->first();
+                if (!$provider) {
+                    $provider = new $this->provider();
+                    $provider->user_id = $user->id;
+                    $provider->zone_id = $request->zone_id ?? config('zone_id');
+                    $provider->coordinates = ['latitude' => 0, 'longitude' => 0];
+                    $provider->is_active = 0;
+                    $provider->is_approved = 0;
+                    $provider->save();
+                }
+                */
+
+                DB::table('user_verifications')
+                    ->where('identity', $request['identity'])
+                    ->where(['otp' => $request['otp']])
+                    ->delete();
+
+                $token = $user->createToken(PROVIDER_PANEL_ACCESS)->accessToken;
+
+                return response()->json(response_formatter(DEFAULT_VERIFIED_200, ['token' => $token, 'is_active' => $user->is_active]), 200);
+            }
+        }
+
+        return response()->json(response_formatter(DEFAULT_404, null, [['message' => 'Invalid or expired OTP.']]), 404);
+    }
+
+
+
+    /**
+     * Get available services for registration
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getAvailableServices(Request $request): JsonResponse
+    {
+        $categories = Category::ofStatus(1)->ofType('main')->get();
+
+
+        return response()->json(response_formatter(DEFAULT_200, $categories), 200);
+    }
+
+    /**
+     * Get services by category ID
+     * @param Request $request
+     * @param string $categoryId
+     * @return JsonResponse
+     */
+    public function getCategoryServices(Request $request, $categoryId): JsonResponse
+    {
+        $category = Category::ofStatus(1)->find($categoryId);
+
+        if (!$category) {
+            return response()->json(response_formatter(DEFAULT_404), 404);
+        }
+
+        // Check for direct services using category_id
+        $category->load([
+            'services_by_category' => function ($query) {
+                $query->withoutGlobalScope('zone_wise_data')
+                    ->with([
+                        'variations' => function ($q) {
+                            $q->withoutGlobalScope('zone_wise_data');
+                        }
+                    ]);
+            }
+        ]);
+
+        $subscribedServiceIds = [];
+        if (auth()->guard('api')->check()) {
+            $user = auth()->guard('api')->user();
+            if ($user->provider) {
+                $subscribedServiceIds = SubscribedService::where('provider_id', $user->provider->id)
+                    ->where('is_subscribed', 1)
+                    ->pluck('service_id')
+                    ->toArray();
+            }
+        }
+
+        $response = [
+            'id' => $category->id,
+            'name' => $category->name,
+            'image' => $category->image_full_path,
+            'services' => []
+        ];
+
+        $categoryName = strtolower($category->name);
+
+        $serviceItems = $category->services_by_category->map(function ($service) use ($categoryName, $subscribedServiceIds) {
+            $serviceName = strtolower($service->name);
+
+            $serviceData = $service->toArray();
+            $serviceData['is_subscribed'] = in_array($service->id, $subscribedServiceIds) ? 1 : 0;
+            $serviceData['requires_service_details'] = 1;
+
+            // Logic matching available-services.blade.php
+            $serviceData['requires_capabilities'] = str_contains($categoryName, 'tyre') && str_contains($serviceName, 'emergency');
+            $serviceData['requires_tyres'] = str_contains($categoryName, 'tyre') && str_contains($serviceName, 'replacement');
+            $serviceData['requires_cars'] = str_contains($serviceName, 'car hire') || str_contains($serviceName, 'chauffeur');
+
+            // Web modal allows setting service types (Mobile/Workshop) for all services
+            $serviceData['requires_service_types'] = 1;
+
+            return $serviceData;
+        });
+
+        // Group all services under the Category itself (Virtual Group)
+        $serviceData = [
+            'id' => $category->id,
+            'name' => $category->name,
+            'description' => $category->description,
+            'image' => $category->image_full_path,
+            // These top-level flags are kept for backward compatibility if the app uses them as a fallback,
+            // but individual service requirements should be prioritized.
+            'requires_capabilities' => str_contains($categoryName, 'tyre emergency'),
+            'requires_tyres' => str_contains($categoryName, 'tyre replacement'),
+            'requires_cars' => str_contains($categoryName, 'car hire') || str_contains($categoryName, 'chauffeur'),
+            'requires_service_types' => 1,
+            'service_items' => $serviceItems
+        ];
+
+        if ($serviceItems->count() > 0) {
+            $response['services'][] = $serviceData;
+        }
+
+        return response()->json(response_formatter(DEFAULT_200, $response), 200);
+    }
+
+    /**
+     * Update services during registration
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateServices(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            // 'sub_category_ids' => 'required|array',
+            // 'sub_category_ids.*' => 'uuid',
+            'service_capabilities' => 'nullable|array',
+            'service_capabilities.*' => 'string',
+            'service_types' => 'nullable|array',
+            'service_types.*' => 'in:MOBILE,WORKSHOP',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+        }
+
+        $provider = $this->provider->where('user_id', $request->user()->id)->first();
+        if (!$provider)
+            return response()->json(response_formatter(DEFAULT_404), 404);
+
+        foreach ($request['sub_category_ids'] as $id) {
+            $subscribedService = SubscribedService::where('provider_id', $provider->id)->first();
+            if (!$subscribedService) {
+                $subscribedService = new SubscribedService();
+                $subscribedService->provider_id = $provider->id;
+                // $subscribedService->sub_category_id = $id;
+                $subscribedService->is_subscribed = 1;
+
+                $category = Category::where('id', $id)->first();
+                if ($category) {
+                    if ($category->parent_id) {
+                        $subscribedService->category_id = $category->parent_id;
+                    } else {
+                        $subscribedService->category_id = $category->id;
+                    }
+                }
+
+                if ($request->has('service_capabilities')) {
+                    $subscribedService->service_capabilities = $request->service_capabilities;
+                }
+
+                if ($request->has('service_types')) {
+                    $subscribedService->service_types = $request->service_types;
+                }
+
+                $subscribedService->save();
+            } else {
+                $subscribedService->is_subscribed = 1;
+
+                if ($request->has('service_capabilities')) {
+                    $subscribedService->service_capabilities = $request->service_capabilities;
+                }
+
+                if ($request->has('service_types')) {
+                    $subscribedService->service_types = $request->service_types;
+                }
+
+                $subscribedService->save();
+            }
+        }
+
+        return response()->json(response_formatter(DEFAULT_UPDATE_200), 200);
+    }
+
+    /**
+     * Update business info during registration
+     * @param Request $request
+     * @return JsonResponse
+     */
+    // public function updateBusinessInfo(Request $request): JsonResponse
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'company_name' => 'required',
+    //         'company_phone' => 'required',
+    //         'company_address' => 'required',
+    //         'company_email' => 'required|email',
+    //         'logo' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:10000',
+    //         'cover_image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:10000',
+    //         'identity_type' => 'required',
+    //         'identity_number' => 'required',
+    //         'identity_images' => 'array',
+    //         'latitude' => 'nullable',
+    //         'longitude' => 'nullable',
+    //         'zone_id' => 'nullable'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+    //     }
+
+    //     $provider = $this->provider->where('user_id', $request->user()->id)->first();
+    //     if (!$provider)
+    //         return response()->json(response_formatter(DEFAULT_404), 404);
+
+    //     $provider->company_name = $request->company_name;
+    //     $provider->company_phone = $request->company_phone;
+    //     $provider->company_email = $request->company_email;
+    //     $provider->company_address = $request->company_address;
+    //     if ($request->has('zone_id')) {
+    //         $provider->zone_id = $request->zone_id;
+    //     }
+    //     if ($request->has('latitude') && $request->has('longitude')) {
+    //         $provider->coordinates = ['latitude' => $request->latitude, 'longitude' => $request->longitude];
+    //     }
+
+    //     if ($request->has('logo')) {
+    //         $provider->logo = file_uploader('provider/logo/', 'png', $request->file('logo'));
+    //     }
+
+    //     if ($request->has('cover_image')) {
+    //         $provider->cover_image = file_uploader('provider/logo/', 'png', $request->file('cover_image'));
+    //     }
+
+    //     // Update Owner/User details relative to business
+    //     $owner = $provider->owner;
+    //     $owner->identification_type = $request->identity_type;
+    //     $owner->identification_number = $request->identity_number;
+
+    //     if ($request->has('identity_images')) {
+    //         $identityImages = [];
+    //         foreach ($request->identity_images as $image) {
+    //             $imageName = file_uploader('provider/identity/', 'png', $image);
+    //             $identityImages[] = ['image' => $imageName, 'storage' => getDisk()];
+    //         }
+    //         $owner->identification_image = $identityImages;
+    //     }
+
+    //     $owner->save();
+    //     $provider->save();
+
+    //     return response()->json(response_formatter(DEFAULT_UPDATE_200), 200);
+    // }
+
+ public function updateBusinessInfo(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'company_name' => 'required',
+            'company_phone' => 'required',
+            'company_address' => 'required',
+            'company_email' => 'required|email',
+            'logo' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:10000',
+            'cover_image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:10000',
+            'identity_type' => 'required',
+            'identity_number' => 'required',
+            'identity_images' => 'array',
+            'latitude' => 'nullable',
+            'longitude' => 'nullable',
+            'zone_id' => 'nullable',
+            'postcode' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+        }
+
+        $provider = $this->provider->where('user_id', $request->user()->id)->first();
+        if (!$provider)
+            return response()->json(response_formatter(DEFAULT_404), 404);
+
+        $provider->company_name = $request->company_name;
+        $provider->company_phone = $request->company_phone;
+        $provider->company_email = $request->company_email;
+        $provider->company_address = $request->company_address;
+
+
+        if ($request->has('postcode')) {
+            $provider->postcode = $request->postcode;
+        }
+
+        if ($request->has('zone_id')) {
+            $provider->zone_id = $request->zone_id;
+        }
+        if ($request->has('latitude') && $request->has('longitude')) {
+            $provider->coordinates = ['latitude' => $request->latitude, 'longitude' => $request->longitude];
+        }
+
+        if ($request->has('logo')) {
+            $provider->logo = file_uploader('provider/logo/', 'png', $request->file('logo'));
+        }
+
+        if ($request->has('cover_image')) {
+            $provider->cover_image = file_uploader('provider/logo/', 'png', $request->file('cover_image'));
+        }
+
+        // Update Owner/User details relative to business
+        $owner = $provider->owner;
+        $owner->identification_type = $request->identity_type;
+        $owner->identification_number = $request->identity_number;
+
+        if ($request->has('identity_images')) {
+            $identityImages = [];
+            foreach ($request->identity_images as $image) {
+                $imageName = file_uploader('provider/identity/', 'png', $image);
+                $identityImages[] = ['image' => $imageName, 'storage' => getDisk()];
+            }
+            $owner->identification_image = $identityImages;
+        }
+
+        $owner->save();
+        $provider->save();
+
+        return response()->json(response_formatter(DEFAULT_UPDATE_200), 200);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     * @param Request $request
+     * @return JsonResponse
+     */
+    // public function providerRegister(Request $request): JsonResponse
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'contact_person_name' => 'required',
+    //         'contact_person_phone' => 'required',
+    //         'contact_person_email' => 'required',
+
+    //         'account_first_name' => 'nullable|max:191',
+    //         'account_last_name' => 'nullable|max:191',
+    //         'zone_id' => 'required|uuid',
+    //         'account_email' => 'required|email',
+    //         'account_phone' => 'required',
+    //         'password' => 'required|min:8',
+    //         'confirm_password' => 'required|same:password',
+
+    //         'company_name' => 'required',
+    //         'company_phone' => 'required',
+    //         'company_address' => 'required',
+    //         'company_email' => 'required|email',
+    //         'logo' => 'required|image|mimes:jpeg,jpg,png,gif|max:10000',
+    //         'cover_image' => 'image|mimes:jpeg,jpg,png,gif|max:10000',
+
+    //         'identity_type' => 'required|in:passport,driving_license,nid,trade_license,company_id',
+    //         'identity_number' => 'required',
+    //         'identity_images' => 'required|array',
+    //         'identity_images.*' => 'image|mimes:jpeg,jpg,png,gif',
+
+    //         'latitude' => 'required',
+    //         'longitude' => 'required',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+    //     }
+
+    //     // Check if user exists (for Step 1 flow)
+    //     $existingOwner = User::where('phone', $request['account_phone'])->where('user_type', 'provider-admin')->first();
+
+    //     if ($existingOwner) {
+    //         // If user exists, ensure email matches or is unique relative to others
+    //         if (User::where('email', $request['account_email'])->where('id', '!=', $existingOwner->id)->exists()) {
+    //             return response()->json(response_formatter(DEFAULT_400, null, [["error_code" => "account_email", "message" => translate('Email already taken')]]), 400);
+    //         }
+    //     } else {
+    //         // Standard checks for new user
+    //         if (User::where('email', $request['account_email'])->exists()) {
+    //             return response()->json(response_formatter(DEFAULT_400, null, [["error_code" => "account_email", "message" => translate('Email already taken')]]), 400);
+    //         }
+    //         if (User::where('phone', $request['account_phone'])->exists()) {
+    //             return response()->json(response_formatter(DEFAULT_400, null, [["error_code" => "account_phone", "message" => translate('Phone already taken')]]), 400);
+    //         }
+    //     }
+
+    //     if ($request->choose_business_plan == 'subscription_base') {
+    //         $package = $this->subscriptionPackage->where('id', $request->selected_package_id)->ofStatus(1)->first();
+    //         $vatPercentage = (int) ((business_config('subscription_vat', 'subscription_Setting'))->live_values ?? 0);
+    //         if (!$package) {
+    //             return response()->json(response_formatter(DEFAULT_400, null, [["error_code" => "package", "message" => translate('Please Select valid plan')]]), 400);
+    //         }
+
+    //         $id = $package->id;
+    //         $price = $package->price;
+    //         $name = $package->name;
+    //         $vatAmount = $package->price * ($vatPercentage / 100);
+    //         $vatWithPrice = $price + $vatAmount;
+    //     }
+
+    //     $identityImages = [];
+    //     foreach ($request->identity_images as $image) {
+    //         $imageName = file_uploader('provider/identity/', 'png', $image);
+    //         $identityImages[] = ['image' => $imageName, 'storage' => getDisk()];
+    //     }
+
+    //     $provider = $this->provider;
+    //     $provider->company_name = $request->company_name;
+    //     $provider->company_phone = $request->company_phone;
+    //     $provider->company_email = $request->company_email;
+    //     $provider->logo = file_uploader('provider/logo/', 'png', $request->file('logo'));
+
+    //     if ($request->has('cover_image')) {
+    //         $provider->cover_image = file_uploader('provider/logo/', 'png', $request->file('cover_image'));
+    //     }
+
+    //     $provider->company_address = $request->company_address;
+
+    //     $provider->contact_person_name = $request->contact_person_name;
+    //     $provider->contact_person_phone = $request->contact_person_phone;
+    //     $provider->contact_person_email = $request->contact_person_email;
+    //     $provider->is_approved = 2;
+    //     $provider->is_active = 0;
+    //     $provider->zone_id = $request['zone_id'];
+    //     $provider->coordinates = ['latitude' => $request['latitude'], 'longitude' => $request['longitude']];
+
+    //     if ($existingOwner) {
+    //         $owner = $existingOwner;
+    //     } else {
+    //         $owner = $this->owner;
+    //     }
+
+    //     $owner->first_name = $request->account_first_name;
+    //     $owner->last_name = $request->account_last_name;
+    //     $owner->email = $request->account_email;
+    //     $owner->phone = $request->account_phone;
+    //     $owner->identification_number = $request->identity_number;
+    //     $owner->identification_type = $request->identity_type;
+    //     $owner->identification_image = $identityImages;
+    //     $owner->password = bcrypt($request->password);
+    //     $owner->user_type = 'provider-admin';
+    //     $owner->is_active = 0;
+
+    //     DB::transaction(function () use ($provider, $owner, $request) {
+    //         $owner->save();
+    //         $provider->user_id = $owner->id;
+    //         $provider->save();
+
+    //         $serviceLocation = ['customer'];
+    //         ProviderSetting::create([
+    //             'provider_id' => $provider->id,
+    //             'key_name' => 'service_location',
+    //             'live_values' => json_encode($serviceLocation),
+    //             'test_values' => json_encode($serviceLocation),
+    //             'settings_type' => 'provider_config',
+    //             'mode' => 'live',
+    //             'is_active' => 1,
+    //         ]);
+    //     });
+
+    //     $emailStatus = business_config('email_config_status', 'email_config')->live_values;
+
+    //     if ($emailStatus) {
+    //         try {
+    //             Mail::to(User::where('user_type', 'super-admin')->value('email'))->send(new NewJoiningRequestMail($provider));
+    //         } catch (\Exception $exception) {
+    //             info($exception);
+    //         }
+    //     }
+
+    //     if ($request->choose_business_plan == 'subscription_base') {
+    //         $provider_id = $provider->id;
+    //         if ($request->free_trial_or_payment == 'free_trial') {
+    //             $result = $this->handleFreeTrialPackageSubscription($id, $provider_id, $price, $name);
+    //             if (!$result) {
+    //                 return response()->json(response_formatter(DEFAULT_FAIL_200), 400);
+    //             }
+    //         } elseif ($request->free_trial_or_payment == 'payment') {
+    //             $paymentUrl = url('payment/subscription') . '?' .
+    //                 'provider_id=' . $provider_id . '&' .
+    //                 'access_token=' . base64_encode($owner->id) . '&' .
+    //                 'package_id=' . $id . '&' .
+    //                 'amount=' . $vatWithPrice . '&' .
+    //                 'name=' . $name . '&' .
+    //                 'package_status=' . 'subscription_purchase' . '&' .
+    //                 http_build_query($request->all());
+    //             return response()->json(response_formatter(PROVIDER_STORE_200, $paymentUrl), 200);
+    //         }
+    //     }
+
+    //     return response()->json(response_formatter(PROVIDER_STORE_200), 200);
+    // }
+
+    public function providerRegister(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'contact_person_name' => 'required',
+            'contact_person_phone' => 'required',
+            'contact_person_email' => 'required|email',
+            'zone_id' => 'required|uuid',
+            'company_name' => 'required',
+            'company_phone' => 'required',
+            'company_address' => 'required',
+            'company_email' => 'required|email',
+            'logo' => 'required|image|mimes:jpeg,jpg,png,gif|max:10000',
+            'cover_image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:10000',
+            'identity_type' => 'required|in:passport,driving_license,nid,trade_license,company_id',
+            'identity_number' => 'required',
+            'identity_images' => 'required|array',
+            'identity_images.*' => 'image|mimes:jpeg,jpg,png,gif',
+            'latitude' => 'required',
+            'longitude' => 'required',
+            'choose_business_plan' => 'nullable|in:subscription_base',
+            'selected_package_id' => 'required_if:choose_business_plan,subscription_base',
+            'free_trial_or_payment' => 'required_if:choose_business_plan,subscription_base',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+        }
+
+        $user = auth()->user();
+        if (!$user || $user->user_type !== 'provider-admin') {
+            return response()->json(response_formatter(DEFAULT_401), 401);
+        }
+
+        $provider = $this->provider->where('user_id', $user->id)->first();
+        if (!$provider) {
+            $provider = new $this->provider();
+            $provider->user_id = $user->id;
+        }
+
+        $vatWithPrice = 0;
+        $package = null;
+        if ($request->choose_business_plan == 'subscription_base') {
+            $package = $this->subscriptionPackage->where('id', $request->selected_package_id)->ofStatus(1)->first();
+            $vatPercentage = (int) ((business_config('subscription_vat', 'subscription_Setting'))->live_values ?? 0);
+            if (!$package) {
+                return response()->json(response_formatter(DEFAULT_400, null, [["error_code" => "package", "message" => translate('Please Select valid plan')]]), 400);
+            }
+            $vatAmount = $package->price * ($vatPercentage / 100);
+            $vatWithPrice = $package->price + $vatAmount;
+        }
+
+
+        $identityImages = [];
+        foreach ($request->identity_images as $image) {
+            $imageName = file_uploader('provider/identity/', 'png', $image);
+            $identityImages[] = ['image' => $imageName, 'storage' => getDisk()];
+        }
+
+
+        DB::transaction(function () use ($request, $identityImages, $user, $provider) {
+
+            $user->identification_number = $request->identity_number;
+            $user->identification_type = $request->identity_type;
+            $user->identification_image = $identityImages;
+            $user->save();
+
+
+            $provider->company_name = $request->company_name;
+            $provider->company_phone = $request->company_phone;
+            $provider->company_email = $request->company_email;
+            $provider->logo = file_uploader('provider/logo/', 'png', $request->file('logo'));
+            if ($request->has('cover_image')) {
+                $provider->cover_image = file_uploader('provider/cover/', 'png', $request->file('cover_image'));
+            }
+            $provider->company_address = $request->company_address;
+            $provider->contact_person_name = $request->contact_person_name;
+            $provider->contact_person_phone = $request->contact_person_phone;
+            $provider->contact_person_email = $request->contact_person_email;
+            $provider->is_approved = 2;
+            $provider->is_active = 0;
+            $provider->zone_id = $request['zone_id'];
+            $provider->coordinates = ['latitude' => $request['latitude'], 'longitude' => $request['longitude']];
+            $provider->save();
+
+
+            ProviderSetting::updateOrCreate(
+                ['provider_id' => $provider->id, 'key_name' => 'service_location'],
+                [
+                    'live_values' => json_encode(['customer']),
+                    'test_values' => json_encode(['customer']),
+                    'settings_type' => 'provider_config',
+                    'mode' => 'live',
+                    'is_active' => 1,
+                ]
+            );
+        });
+
+
+        $emailStatus = business_config('email_config_status', 'email_config')->live_values;
+        if ($emailStatus) {
+            try {
+                Mail::to(User::where('user_type', 'super-admin')->value('email'))->send(new NewJoiningRequestMail($provider));
+            } catch (\Exception $exception) {
+                info($exception);
+            }
+        }
+
+
+        if ($request->choose_business_plan == 'subscription_base') {
+            if ($request->free_trial_or_payment == 'free_trial') {
+                $result = $this->handleFreeTrialPackageSubscription($package->id, $provider->id, $package->price, $package->name);
+                if (!$result) {
+                    return response()->json(response_formatter(DEFAULT_FAIL_200), 400);
+                }
+            } elseif ($request->free_trial_or_payment == 'payment') {
+                $paymentUrl = url('payment/subscription') . '?' .
+                    'provider_id=' . $provider->id . '&' .
+                    'access_token=' . base64_encode($user->id) . '&' .
+                    'package_id=' . $package->id . '&' .
+                    'amount=' . $vatWithPrice . '&' .
+                    'name=' . $package->name . '&' .
+                    'package_status=' . 'subscription_purchase' . '&' .
+                    http_build_query($request->all());
+                return response()->json(response_formatter(PROVIDER_STORE_200, ['payment_url' => $paymentUrl]), 200);
+            }
+        }
+
+        return response()->json(response_formatter(PROVIDER_STORE_200, ['message' => 'Provider details submitted successfully.']), 200);
+    }
+    /**
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function user_verification(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'identity' => 'required',
+            'otp' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
+        }
+
+        $data = DB::table('user_verifications')
+            ->where('identity', $request['identity'])
+            ->where(['otp' => $request['otp']])->first();
+
+        if (isset($data)) {
+            $this->user->whereIn('user_type', CUSTOMER_USER_TYPES)
+                ->where('phone', $request['identity'])
+                ->update([
+                    'is_phone_verified' => 1
+                ]);
+
+            DB::table('user_verifications')
+                ->where('identity', $request['identity'])
+                ->where(['otp' => $request['otp']])->delete();
+
+            return response()->json(response_formatter(DEFAULT_VERIFIED_200), 200);
+        }
+
+        return response()->json(response_formatter(DEFAULT_404), 200);
+    }
+
+}

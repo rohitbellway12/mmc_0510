@@ -1,0 +1,374 @@
+/* =============================================
+   Custom Theme Overrides - Dark Gold/Premium Theme
+   Project: MMC Admin Panel
+   Dark Gold Color: #9A6F1E
+   ============================================= */
+
+/* -----------------------------------------------
+   1. DARK GOLD PRIMARY COLOR - CSS Variable Overrides
+   ----------------------------------------------- */
+:root,
+[data-bs-theme=light] {
+    --bs-primary: #9A6F1E !important;
+    --bs-primary-rgb: 154, 111, 30 !important;
+    --bs-primary-dark: #7D5A15 !important;
+    --bs-primary-light: #F5E6C8 !important;
+    --bs-primary-light-bg: rgba(154, 111, 30, 0.12) !important;
+    --c1: #9A6F1E !important;
+    --c2: #9A6F1E !important;
+    --input-border-color-active: rgba(154, 111, 30, 0.4) !important;
+
+    /* Light mode specific white stays white */
+    --bs-white: #ffffff;
+    --bs-white-rgb: 255, 255, 255;
+}
+
+[data-bs-theme=dark] {
+    --bs-primary: #9A6F1E !important;
+    --bs-primary-rgb: 154, 111, 30 !important;
+    --bs-primary-dark: #7D5A15 !important;
+    --bs-primary-light: #3a2b0f !important;
+    --bs-primary-light-bg: rgba(154, 111, 30, 0.1) !important;
+    --c1: #9A6F1E !important;
+    --c2: #9A6F1E !important;
+    --input-border-color-active: rgba(154, 111, 30, 0.3) !important;
+}
+
+/* -----------------------------------------------
+   2. TEXT COLOR FIXES
+   ----------------------------------------------- */
+.c1, .text-primary, .link-color {
+    color: #9A6F1E !important;
+}
+
+/* -----------------------------------------------
+   3. BACKGROUND COLOR FIXES
+   ----------------------------------------------- */
+.c1-bg, .link-color-bg {
+    background-color: #9A6F1E !important;
+}
+
+/* -----------------------------------------------
+   4. BORDER COLOR FIXES
+   ----------------------------------------------- */
+.c1-bo, .border-primary, .link-color-bo {
+    border-color: #9A6F1E !important;
+}
+
+/* -----------------------------------------------
+   5. BUTTON OVERRIDES
+   Dark Gold buttons with white text for readability
+   ----------------------------------------------- */
+.btn-primary,
+.btn--primary,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active {
+    background-color: #9A6F1E !important;
+    border-color: #7D5A15 !important;
+    color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn--primary:hover {
+    background-color: #7D5A15 !important;
+    border-color: #613F0D !important;
+    color: #ffffff !important;
+}
+
+/* Light primary button */
+.btn--light-primary {
+    background-color: rgba(154, 111, 30, 0.12) !important;
+    color: #9A6F1E !important;
+    border-color: transparent !important;
+}
+
+.btn--light-primary:hover {
+    background-color: #9A6F1E !important;
+    color: #ffffff !important;
+}
+
+/* -----------------------------------------------
+   6. SIDEBAR ACTIVE STATE FIX
+   ----------------------------------------------- */
+.aside-body .nav li.active > a,
+.aside-body .nav li.active > .link-title,
+.aside-body .nav li:hover > a,
+.aside-body .nav li.active > a .material-icons,
+.aside-body .nav li:hover > a .material-icons {
+    color: #9A6F1E !important;
+}
+
+/* Sidebar left border active */
+.navbar-vertical .nav-link.active {
+    border-left: 3px solid #9A6F1E !important;
+}
+
+/* -----------------------------------------------
+   7. TABLE COLOR FIXES - Light Mode
+   Fix table text visibility in light mode
+   ----------------------------------------------- */
+
+/* Light mode: Ensure table cells have proper white bg and dark text */
+[data-bs-theme=light] .table td,
+[data-bs-theme=light] .table th,
+:root .table td,
+:root .table th {
+    background-color: #ffffff;
+    color: #18181a;
+}
+
+[data-bs-theme=light] .table thead,
+[data-bs-theme=light] .table tfoot,
+:root .table thead,
+:root .table tfoot {
+    background-color: #EFF1F4;
+    color: #18181a;
+}
+
+/* DataTables Light Mode Paginate */
+[data-bs-theme=light] .dataTables_wrapper .dataTables_paginate .paginate_button,
+:root .dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: #18181a !important;
+    background-color: #EFF1F4;
+}
+
+/* Active page button */
+[data-bs-theme=light] .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+:root .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: #9A6F1E !important;
+    color: #ffffff !important;
+    border-color: #9A6F1E !important;
+}
+
+/* Dark Mode: Ensure table cells have proper dark bg and light text */
+[data-bs-theme=dark] .table td {
+    background-color: #232325;
+    color: #ccd0d3;
+}
+
+[data-bs-theme=dark] .table th {
+    background-color: #39393b;
+    color: #ccd0d3;
+}
+
+[data-bs-theme=dark] .table thead,
+[data-bs-theme=dark] .table tfoot {
+    background-color: #39393b;
+    color: #ccd0d3;
+}
+
+/* -----------------------------------------------
+   8. CARD FIXES
+   ----------------------------------------------- */
+[data-bs-theme=light] .card,
+:root .card {
+    background-color: #ffffff;
+    color: #18181a;
+}
+
+[data-bs-theme=dark] .card {
+    background-color: #232325;
+    color: #ccd0d3;
+}
+
+/* -----------------------------------------------
+   9. PAGINATE ACTIVE BUTTON (global)
+   ----------------------------------------------- */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background-color: #9A6F1E !important;
+    color: #ffffff !important;
+    border-color: #9A6F1E !important;
+}
+
+/* -----------------------------------------------
+   10. NAV TABS ACTIVE FIX
+   ----------------------------------------------- */
+.nav--tabs .nav-link.active {
+    color: #9A6F1E !important;
+    border-bottom-color: #9A6F1E !important;
+    opacity: 1 !important;
+}
+
+.nav--tabs__style2 .nav-link.active,
+.nav--tabs__style2 .nav-link.active:hover,
+.nav--tabs__style2 .nav-link.active:focus {
+    background-color: #9A6F1E !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.nav--tabs__style2 .nav-link:not(.active) {
+    color: var(--bs-body-color, #334257) !important;
+}
+
+.nav--tabs__style2 .nav-link:not(.active):hover {
+    color: #9A6F1E !important;
+}
+
+/* -----------------------------------------------
+   11. INPUT FOCUS BORDER
+   ----------------------------------------------- */
+.form-control:focus,
+.theme-input-style:focus {
+    border-color: #9A6F1E !important;
+    box-shadow: 0 0 0 0.2rem rgba(154, 111, 30, 0.25) !important;
+}
+
+/* -----------------------------------------------
+   12. SCROLLBAR ACCENT
+   ----------------------------------------------- */
+::-webkit-scrollbar-thumb {
+    background: #9A6F1E !important;
+}
+
+/* -----------------------------------------------
+   13. TOASTR - Success notification
+   ----------------------------------------------- */
+#toast-container > .toast-success {
+    background-color: #9A6F1E !important;
+    color: #ffffff !important;
+}
+
+/* -----------------------------------------------
+   14. SELECT2 ACTIVE OPTION
+   ----------------------------------------------- */
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #9A6F1E !important;
+    color: #ffffff !important;
+}
+
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: rgba(154, 111, 30, 0.15) !important;
+}
+
+/* -----------------------------------------------
+   15. SWITCHER ACTIVE STATE
+   ----------------------------------------------- */
+.switcher input:checked + .switcher_control {
+    background-color: #9A6F1E !important;
+}
+
+/* -----------------------------------------------
+   16. LIGHT MODE TEXT VISIBILITY FIXES
+   ----------------------------------------------- */
+[data-bs-theme=light] body,
+:root body {
+    color: #5E6472;
+}
+
+[data-bs-theme=light] h1,
+[data-bs-theme=light] h2,
+[data-bs-theme=light] h3,
+[data-bs-theme=light] h4,
+[data-bs-theme=light] h5,
+[data-bs-theme=light] h6,
+:root h1,
+:root h2,
+:root h3,
+:root h4,
+:root h5,
+:root h6 {
+    color: #18181a;
+}
+
+/* -----------------------------------------------
+   17. BG-PRIMARY USAGE FIX
+   ----------------------------------------------- */
+.bg-primary {
+    background-color: #9A6F1E !important;
+    color: #ffffff !important;
+}
+
+/* -----------------------------------------------
+   18. LINK HOVER FIX - Only specific cases
+   ----------------------------------------------- */
+/* Note: General a:hover is handled by style.css using var(--bs-primary) */
+/* No override needed here - the primary variable change handles it */
+
+/* -----------------------------------------------
+   19. MODAL CLOSE BUTTON - Light Mode Fix
+   ----------------------------------------------- */
+[data-bs-theme=light] .modal-content .btn-close,
+:root .modal-content .btn-close {
+    background-color: rgb(221, 221, 221) !important;
+}
+
+[data-bs-theme=dark] .modal-content .btn-close {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* -----------------------------------------------
+   20. FILTER ASIDE & SETTINGS SIDEBAR
+   ----------------------------------------------- */
+[data-bs-theme=light] .filter-aside,
+[data-bs-theme=light] .settings-sidebar,
+:root .filter-aside,
+:root .settings-sidebar {
+    background-color: #ffffff;
+    color: #18181a;
+}
+
+/* -----------------------------------------------
+   21. DROPDOWN MENU COLOR FIX
+   ----------------------------------------------- */
+[data-bs-theme=light] .dropdown-menu,
+:root .dropdown-menu {
+    background-color: #ffffff;
+    color: #18181a;
+}
+
+[data-bs-theme=dark] .dropdown-menu {
+    background-color: #39393b;
+    color: #ccd0d3;
+}
+
+/* -----------------------------------------------
+   22. FORM CONTROL LIGHT MODE
+   ----------------------------------------------- */
+[data-bs-theme=light] .form-control,
+[data-bs-theme=light] .theme-input-style,
+:root .form-control,
+:root .theme-input-style {
+    color: #18181a;
+    background-color: #ffffff;
+    border-color: #e4e4e4;
+}
+
+[data-bs-theme=dark] .form-control,
+[data-bs-theme=dark] .theme-input-style {
+    color: #ccd0d3;
+    background-color: #232325;
+    border-color: #404040;
+}
+
+/* -----------------------------------------------
+   23. HEADER LIGHT MODE FIX
+   ----------------------------------------------- */
+[data-bs-theme=light] .header,
+:root .header {
+    background-color: #ffffff;
+}
+
+/* -----------------------------------------------
+   24. ASIDE (SIDEBAR) LIGHT MODE FIX
+   ----------------------------------------------- */
+[data-bs-theme=light] .aside,
+:root .aside {
+    background-color: #ffffff;
+}
+
+[data-bs-theme=dark] .aside {
+    background-color: #232325;
+}
+
+/* -----------------------------------------------
+   25. BADGE TEXT ON DARK GOLD BACKGROUND
+   ----------------------------------------------- */
+.badge.c1-bg,
+.badge.bg-primary,
+.badge.link-color-bg {
+    color: #ffffff !important;
+}

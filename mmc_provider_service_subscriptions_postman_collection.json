@@ -1,0 +1,761 @@
+{
+	"info": {
+		"_postman_id": "8a72b6c1-4b13-48e2-b94f-7c1529ea4512",
+		"name": "MMC - Provider Service Subscriptions & Configuration API",
+		"description": "Comprehensive Postman collection for Provider Service Subscriptions, Unsubscriptions, Service Configuration (Estimated Time, Mobile/Workshop Delivery Methods, Flat Pricing, Tyre Details, Car Hire & Chauffeur Fleet addition), and Customer-side verification matching the Web Panel at http://localhost/mmc/provider/service/available.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Subscriptions Management",
+			"item": [
+				{
+					"name": "1. Available Services (With is_subscribed & Badges)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service/available-services?category_id=all&limit=50&offset=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service",
+								"available-services"
+							],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "all",
+									"description": "'all' or category UUID"
+								},
+								{
+									"key": "limit",
+									"value": "50"
+								},
+								{
+									"key": "offset",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Lists all available services in the provider's zone along with categories, is_subscribed boolean, estimated_time, service_types badges, and custom prices."
+					},
+					"response": []
+				},
+				{
+					"name": "2. My Subscriptions (Subscribed Services List)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service?status=subscribed&limit=50&offset=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "subscribed",
+									"description": "'subscribed', 'unsubscribed', or 'all'"
+								},
+								{
+									"key": "limit",
+									"value": "50"
+								},
+								{
+									"key": "offset",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Returns ONLY the services that this provider has subscribed to."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Subscribe Service (Dedicated API)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service_id\": \"{{service_id}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service/subscribe",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service",
+								"subscribe"
+							]
+						},
+						"description": "Explicitly subscribes the provider to a single service."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Unsubscribe Service (Dedicated API)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service_id\": \"{{service_id}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service/unsubscribe",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service",
+								"unsubscribe"
+							]
+						},
+						"description": "Explicitly unsubscribes the provider from a single service."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Toggle Subscription (Subscribe / Unsubscribe Switch)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service_id\": [\n    \"{{service_id}}\"\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service/update-subscription",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service",
+								"update-subscription"
+							]
+						},
+						"description": "Toggles subscription status for array of service IDs. If unsubscribed -> subscribes. If subscribed -> unsubscribes."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Service Configuration (Modal on Web)",
+			"item": [
+				{
+					"name": "1. Get Service Details / Existing Config",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service/service-details?service_id={{service_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service",
+								"service-details"
+							],
+							"query": [
+								{
+									"key": "service_id",
+									"value": "{{service_id}}",
+									"description": "UUID of the subscribed service"
+								}
+							]
+						},
+						"description": "Fetches the current saved configuration: estimated_time, service_types (mobile/workshop), service_price, variations, tyres, and car fleet."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Save Standard Service Configuration (Time, Mobile/Workshop, Price, Images)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "service_id",
+									"value": "{{service_id}}",
+									"type": "text"
+								},
+								{
+									"key": "estimated_time",
+									"value": "5 hrs 0 mins",
+									"type": "text"
+								},
+								{
+									"key": "service_types[0]",
+									"value": "mobile",
+									"type": "text"
+								},
+								{
+									"key": "service_types[1]",
+									"value": "workshop",
+									"type": "text"
+								},
+								{
+									"key": "service_price",
+									"value": "200.00",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": [],
+									"description": "Upload completed service / sample work images (Max 10MB each)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service/update-service-details",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service",
+								"update-service-details"
+							]
+						},
+						"description": "Exact match for the web 'Service Configuration' popup modal (Configuring completion time, mobile/workshop checkboxes, flat service price, and sample work images)."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Save Tyre Service Configuration (With Tyre Stock & Size)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "service_id",
+									"value": "{{service_id}}",
+									"type": "text"
+								},
+								{
+									"key": "estimated_time",
+									"value": "1 hrs 0 mins",
+									"type": "text"
+								},
+								{
+									"key": "service_types[0]",
+									"value": "workshop",
+									"type": "text"
+								},
+								{
+									"key": "tyres[0][brand]",
+									"value": "Michelin",
+									"type": "text"
+								},
+								{
+									"key": "tyres[0][model]",
+									"value": "Pilot Sport 4",
+									"type": "text"
+								},
+								{
+									"key": "tyres[0][size]",
+									"value": "225/45 R17",
+									"type": "text"
+								},
+								{
+									"key": "tyres[0][price]",
+									"value": "95.00",
+									"type": "text"
+								},
+								{
+									"key": "tyres[0][stock]",
+									"value": "12",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service/update-service-details",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service",
+								"update-service-details"
+							]
+						},
+						"description": "Configures Tyre service with tyre inventory (brand, model, size, unit price, stock count)."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Save Car Hire Service (Add Self-Drive Vehicle)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "service_id",
+									"value": "{{service_id}}",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][brand]",
+									"value": "BMW",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][model]",
+									"value": "5 Series",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][service_category]",
+									"value": "car_hire",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][pricing_type]",
+									"value": "daily",
+									"type": "text",
+									"description": "'daily', 'hourly', or 'both'"
+								},
+								{
+									"key": "cars[0][daily_rate]",
+									"value": "120.00",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][security_deposit]",
+									"value": "500.00",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][transmission_type]",
+									"value": "Automatic",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][seating_capacity]",
+									"value": "5",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][manufacture_year]",
+									"value": "2023",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][postcode]",
+									"value": "SW1A 1AA",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][address]",
+									"value": "London Victoria Hub",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][registration_number]",
+									"value": "LD23 XYZ",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][car_images][front_view]",
+									"type": "file",
+									"src": [],
+									"description": "Front view photo"
+								},
+								{
+									"key": "cars[0][car_images][rear_view]",
+									"type": "file",
+									"src": [],
+									"description": "Rear view photo"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service/update-service-details",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service",
+								"update-service-details"
+							]
+						},
+						"description": "Adds a self-drive rental car under Car Hire service configuration with daily pricing, security deposit, address, specs, and photos."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Save Chauffeur Service (Add Chauffeur Vehicle & Documents)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "service_id",
+									"value": "{{service_id}}",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][brand]",
+									"value": "Mercedes-Benz",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][model]",
+									"value": "S-Class",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][service_category]",
+									"value": "chauffeur",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][pricing_type]",
+									"value": "hourly",
+									"type": "text",
+									"description": "'hourly', 'daily', or 'both'"
+								},
+								{
+									"key": "cars[0][hourly_rate]",
+									"value": "65.00",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][air_conditioning]",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][available_hours_start]",
+									"value": "08:00",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][available_hours_end]",
+									"value": "22:00",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][preferred_areas]",
+									"value": "London Heathrow, Mayfair, Knightsbridge",
+									"type": "text"
+								},
+								{
+									"key": "cars[0][driving_license]",
+									"type": "file",
+									"src": [],
+									"description": "Chauffeur driving license"
+								},
+								{
+									"key": "cars[0][insurance_documents]",
+									"type": "file",
+									"src": [],
+									"description": "Hire & reward / chauffeur insurance"
+								},
+								{
+									"key": "cars[0][mot_certificate]",
+									"type": "file",
+									"src": [],
+									"description": "MOT certificate"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/service/update-service-details",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"service",
+								"update-service-details"
+							]
+						},
+						"description": "Adds a chauffeur vehicle under Chauffeur service configuration with hourly rates, service operating hours, preferred operating areas, and licensing documents."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Customer-Side Verification",
+			"item": [
+				{
+					"name": "1. Search Providers by Service (Check Badges & Configured Rates)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "zoneid",
+								"value": "{{zone_id}}",
+								"description": "Target zone ID"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service_ids\": [\n    \"{{service_id}}\"\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/provider/search-by-service",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"provider",
+								"search-by-service"
+							]
+						},
+						"description": "Verifies that customer receives the provider's service_types (mobile/workshop), estimated_time, service_price, and sample completed_service_images."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Provider Profile Details (Customer View)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/provider-details?id={{provider_id}}&limit=50&offset=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"provider-details"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{provider_id}}",
+									"description": "Provider ID"
+								},
+								{
+									"key": "limit",
+									"value": "50"
+								},
+								{
+									"key": "offset",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Verifies that all services under sub_categories on provider's profile include configured service_types, estimated_time, service_price, and completed_service_images."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/mmc",
+			"type": "string"
+		},
+		{
+			"key": "provider_token",
+			"value": "YOUR_PROVIDER_BEARER_TOKEN",
+			"type": "string"
+		},
+		{
+			"key": "service_id",
+			"value": "SERVICE_UUID_HERE",
+			"type": "string"
+		},
+		{
+			"key": "provider_id",
+			"value": "PROVIDER_ID_HERE",
+			"type": "string"
+		},
+		{
+			"key": "zone_id",
+			"value": "ZONE_ID_HERE",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,14 @@
+{
+    "name": "CarHire",
+    "alias": "carhire",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "require": {
+        "php": ">=8.2"
+    },
+    "providers": [
+        "Modules\\CarHire\\Providers\\CarHireServiceProvider"
+    ],
+    "files": []
+}

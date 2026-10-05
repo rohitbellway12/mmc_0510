@@ -1,0 +1,11 @@
+{
+    "first_name": "Test",
+    "last_name": "Provider",
+    "email": "testprovider_auto_1@example.com",
+    "phone": "+919999999999",
+    "password": "password123",
+    "confirm_password": "password123",
+    "zone_id": "325778a8-53bd-4de5-a6bb-826f62edf603",
+    "latitude": "23.8103",
+    "longitude": "90.4125"
+}

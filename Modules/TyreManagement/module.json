@@ -1,0 +1,11 @@
+{
+    "name": "TyreManagement",
+    "alias": "tyremanagement",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\TyreManagement\\Providers\\TyreManagementServiceProvider"
+    ],
+    "files": []
+}

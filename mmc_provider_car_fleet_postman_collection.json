@@ -1,0 +1,939 @@
+{
+	"info": {
+		"_postman_id": "c7a8b912-34ef-49a1-b823-1d8f99e01234",
+		"name": "MMC - Provider Car Fleet Management API",
+		"description": "Complete Postman collection for Provider Car Fleet Management including Car Hire (Self-Drive) and Chauffeur (Luxury with Driver) services with real-world industry fields.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Master Data & Dropdowns",
+			"item": [
+				{
+					"name": "1. Get All Car Attributes (Dropdowns & Master Data)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/attributes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"attributes"
+							]
+						},
+						"description": "Returns all master data required for adding or editing cars: active brands (with nested models), vehicle types, fuel types, transmission types, categories, chauffeur luxury tiers, amenities checklist, and mileage/fuel policy options."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Models by Brand ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/models-by-brand/{{brand_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"models-by-brand",
+								"{{brand_id}}"
+							]
+						},
+						"description": "Returns active models belonging to a specific car brand (e.g., brand_id = 1 for BMW, 2 for Mercedes). Dynamic dropdown helper."
+					},
+					"response": []
+				}
+			],
+			"description": "APIs to populate vehicle brands, models, fuel types, tiers and amenities."
+		},
+		{
+			"name": "2. Fleet Listings & Details",
+			"item": [
+				{
+					"name": "1. Get All Provider Fleet Cars (Paginated)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/list?service_category=all&status=all&limit=15&offset=1&search=",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"list"
+							],
+							"query": [
+								{
+									"key": "service_category",
+									"value": "all",
+									"description": "Options: 'all', 'car_hire', 'chauffeur'"
+								},
+								{
+									"key": "status",
+									"value": "all",
+									"description": "Options: 'all', '1' (active), '0' (inactive)"
+								},
+								{
+									"key": "limit",
+									"value": "15"
+								},
+								{
+									"key": "offset",
+									"value": "1"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search by brand, model or registration number"
+								}
+							]
+						},
+						"description": "Get all fleet vehicles owned by the logged-in provider."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Filter Car Hire Fleet (Self-Drive)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/list?service_category=car_hire&status=1&limit=15&offset=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"list"
+							],
+							"query": [
+								{
+									"key": "service_category",
+									"value": "car_hire"
+								},
+								{
+									"key": "status",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "15"
+								},
+								{
+									"key": "offset",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Filter only active Self-Drive Car Hire vehicles."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Filter Chauffeur Fleet (Luxury With Driver)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/list?service_category=chauffeur&status=1&limit=15&offset=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"list"
+							],
+							"query": [
+								{
+									"key": "service_category",
+									"value": "chauffeur"
+								},
+								{
+									"key": "status",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "15"
+								},
+								{
+									"key": "offset",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Filter only active Chauffeur vehicles."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Get Single Car Details (For View / Edit)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/details/{{car_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"details",
+								"{{car_id}}"
+							]
+						},
+						"description": "Get detailed information of a specific car by ID, including resolved image full URLs, category, type, and all real-world fields."
+					},
+					"response": []
+				}
+			],
+			"description": "Listings, search, filters, and individual car detail view."
+		},
+		{
+			"name": "3. Add Vehicle (Create)",
+			"item": [
+				{
+					"name": "1. Add Car Hire (Self-Drive) Vehicle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "service_category",
+									"value": "car_hire",
+									"type": "text"
+								},
+								{
+									"key": "category_id",
+									"value": "399d860e-be40-41ab-ba37-be410d5c80bb",
+									"description": "Main category UUID (e.g. Car Hire category)",
+									"type": "text"
+								},
+								{
+									"key": "car_type_id",
+									"value": "1",
+									"description": "Car Type ID (e.g., Sedan, SUV, Hatchback)",
+									"type": "text"
+								},
+								{
+									"key": "brand",
+									"value": "Audi",
+									"type": "text"
+								},
+								{
+									"key": "model",
+									"value": "A4 S-Line",
+									"type": "text"
+								},
+								{
+									"key": "registration_number",
+									"value": "LD22 XMN",
+									"type": "text"
+								},
+								{
+									"key": "manufacture_year",
+									"value": "2023",
+									"type": "text"
+								},
+								{
+									"key": "fuel_type",
+									"value": "Petrol",
+									"type": "text"
+								},
+								{
+									"key": "transmission_type",
+									"value": "Automatic",
+									"type": "text"
+								},
+								{
+									"key": "seating_capacity",
+									"value": "5",
+									"type": "text"
+								},
+								{
+									"key": "air_conditioning",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "daily_rate",
+									"value": "65.00",
+									"description": "Primary daily rental rate (£)",
+									"type": "text"
+								},
+								{
+									"key": "hourly_rate",
+									"value": "15.00",
+									"description": "Optional hourly rate (£)",
+									"type": "text"
+								},
+								{
+									"key": "security_deposit",
+									"value": "250.00",
+									"description": "Refundable security deposit (£)",
+									"type": "text"
+								},
+								{
+									"key": "mileage_limit",
+									"value": "150 miles/day",
+									"description": "'Unlimited' or '150 miles/day', etc.",
+									"type": "text"
+								},
+								{
+									"key": "extra_mileage_charge",
+									"value": "0.30",
+									"description": "Charge per extra mile beyond allowance (£)",
+									"type": "text"
+								},
+								{
+									"key": "fuel_policy",
+									"value": "Full to Full",
+									"description": "'Full to Full' or 'Same to Same'",
+									"type": "text"
+								},
+								{
+									"key": "available_for",
+									"value": "Both",
+									"description": "'Pickup', 'Delivery', or 'Both'",
+									"type": "text"
+								},
+								{
+									"key": "delivery_fee",
+									"value": "25.00",
+									"description": "Home / Airport delivery fee (£)",
+									"type": "text"
+								},
+								{
+									"key": "min_driver_age",
+									"value": "21",
+									"description": "Minimum renter age",
+									"type": "text"
+								},
+								{
+									"key": "postcode",
+									"value": "SW1A 1AA",
+									"type": "text"
+								},
+								{
+									"key": "address",
+									"value": "123 Westminster Street, London",
+									"type": "text"
+								},
+								{
+									"key": "terms_conditions",
+									"value": "Valid UK / International license required. Security deposit held on card.",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"description": "Upload car photos (one or multiple)",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"description": "Create a Self-Drive Car Hire vehicle with complete daily rates, mileage policy, fuel rules, delivery options, and deposit."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Add Chauffeur (Luxury With Driver) Vehicle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "service_category",
+									"value": "chauffeur",
+									"type": "text"
+								},
+								{
+									"key": "category_id",
+									"value": "399d860e-be40-41ab-ba37-be410d5c80bb",
+									"type": "text"
+								},
+								{
+									"key": "car_type_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "brand",
+									"value": "Mercedes-Benz",
+									"type": "text"
+								},
+								{
+									"key": "model",
+									"value": "S-Class Long Wheelbase (S350d)",
+									"type": "text"
+								},
+								{
+									"key": "registration_number",
+									"value": "VIP 888",
+									"type": "text"
+								},
+								{
+									"key": "manufacture_year",
+									"value": "2024",
+									"type": "text"
+								},
+								{
+									"key": "chauffeur_tier",
+									"value": "first_class",
+									"description": "Options: 'business_class', 'first_class', 'luxury_mpv', 'wedding'",
+									"type": "text"
+								},
+								{
+									"key": "fuel_type",
+									"value": "Diesel",
+									"type": "text"
+								},
+								{
+									"key": "transmission_type",
+									"value": "Automatic",
+									"type": "text"
+								},
+								{
+									"key": "seating_capacity",
+									"value": "3",
+									"description": "Passenger capacity",
+									"type": "text"
+								},
+								{
+									"key": "luggage_capacity",
+									"value": "3",
+									"description": "Maximum suitcases/large bags capacity",
+									"type": "text"
+								},
+								{
+									"key": "hourly_rate",
+									"value": "65.00",
+									"description": "Hourly chauffeur rate (£)",
+									"type": "text"
+								},
+								{
+									"key": "min_booking_hours",
+									"value": "3",
+									"description": "Minimum booking duration in hours",
+									"type": "text"
+								},
+								{
+									"key": "daily_rate",
+									"value": "450.00",
+									"description": "Full-day package rate (£)",
+									"type": "text"
+								},
+								{
+									"key": "service_type",
+									"value": "both",
+									"description": "'hourly', 'full_day', or 'both'",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "wifi",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "water",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "chargers",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "meet_and_greet",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "suited_chauffeur",
+									"type": "text"
+								},
+								{
+									"key": "preferred_areas",
+									"value": "Central London, Heathrow Airport (LHR), Gatwick (LGW), City Airport",
+									"type": "text"
+								},
+								{
+									"key": "postcode",
+									"value": "W1J 7NT",
+									"type": "text"
+								},
+								{
+									"key": "address",
+									"value": "Mayfair, London",
+									"type": "text"
+								},
+								{
+									"key": "terms_conditions",
+									"value": "Professional PCO licensed chauffeur. Complimentary bottled water and 4G Wi-Fi onboard.",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"description": "Upload luxury car photos",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"description": "Create a Chauffeur Luxury Vehicle with luxury tier, hourly rate, minimum booking hours, luggage allowance, and VIP amenities."
+					},
+					"response": []
+				}
+			],
+			"description": "Create new fleet vehicles for Car Hire and Chauffeur services."
+		},
+		{
+			"name": "4. Update Vehicle (Edit)",
+			"item": [
+				{
+					"name": "1. Update Car Hire Vehicle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "service_category",
+									"value": "car_hire",
+									"type": "text"
+								},
+								{
+									"key": "category_id",
+									"value": "399d860e-be40-41ab-ba37-be410d5c80bb",
+									"type": "text"
+								},
+								{
+									"key": "car_type_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "brand",
+									"value": "Audi",
+									"type": "text"
+								},
+								{
+									"key": "model",
+									"value": "A4 S-Line 2023",
+									"type": "text"
+								},
+								{
+									"key": "registration_number",
+									"value": "LD22 XMN",
+									"type": "text"
+								},
+								{
+									"key": "daily_rate",
+									"value": "70.00",
+									"type": "text"
+								},
+								{
+									"key": "hourly_rate",
+									"value": "18.00",
+									"type": "text"
+								},
+								{
+									"key": "security_deposit",
+									"value": "300.00",
+									"type": "text"
+								},
+								{
+									"key": "mileage_limit",
+									"value": "200 miles/day",
+									"type": "text"
+								},
+								{
+									"key": "delivery_fee",
+									"value": "30.00",
+									"type": "text"
+								},
+								{
+									"key": "fuel_policy",
+									"value": "Full to Full",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/update/{{car_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"update",
+								"{{car_id}}"
+							]
+						},
+						"description": "Update Car Hire vehicle rates, mileage allowances, delivery fee, or specs."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Update Chauffeur Vehicle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "service_category",
+									"value": "chauffeur",
+									"type": "text"
+								},
+								{
+									"key": "category_id",
+									"value": "399d860e-be40-41ab-ba37-be410d5c80bb",
+									"type": "text"
+								},
+								{
+									"key": "car_type_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "brand",
+									"value": "Mercedes-Benz",
+									"type": "text"
+								},
+								{
+									"key": "model",
+									"value": "S-Class S500 LWB",
+									"type": "text"
+								},
+								{
+									"key": "chauffeur_tier",
+									"value": "first_class",
+									"type": "text"
+								},
+								{
+									"key": "hourly_rate",
+									"value": "75.00",
+									"type": "text"
+								},
+								{
+									"key": "min_booking_hours",
+									"value": "4",
+									"type": "text"
+								},
+								{
+									"key": "daily_rate",
+									"value": "500.00",
+									"type": "text"
+								},
+								{
+									"key": "luggage_capacity",
+									"value": "4",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "wifi",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "water",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "chargers",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "meet_and_greet",
+									"type": "text"
+								},
+								{
+									"key": "amenities[]",
+									"value": "suited_chauffeur",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/update/{{car_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"update",
+								"{{car_id}}"
+							]
+						},
+						"description": "Update Chauffeur vehicle hourly rate, minimum booking hours, luggage allowance, or VIP amenities."
+					},
+					"response": []
+				}
+			],
+			"description": "Edit existing Car Hire and Chauffeur vehicle details."
+		},
+		{
+			"name": "5. Status & Delete Operations",
+			"item": [
+				{
+					"name": "1. Toggle Car Active Status (URL Param)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/status/{{car_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"status",
+								"{{car_id}}"
+							]
+						},
+						"description": "Toggle availability status of the vehicle between Active (1) and Inactive (0)."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Toggle Car Active Status (Request Body)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"{{car_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/status-update",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"status-update"
+							]
+						},
+						"description": "Toggle status by passing car ID inside JSON request body."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Delete Vehicle",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/car/delete/{{car_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"car",
+								"delete",
+								"{{car_id}}"
+							]
+						},
+						"description": "Delete a vehicle from the provider fleet."
+					},
+					"response": []
+				}
+			],
+			"description": "Availability status toggle and fleet car deletion."
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/mmc",
+			"type": "string"
+		},
+		{
+			"key": "provider_token",
+			"value": "YOUR_PROVIDER_BEARER_TOKEN",
+			"type": "string"
+		},
+		{
+			"key": "brand_id",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "car_id",
+			"value": "29",
+			"type": "string"
+		}
+	]
+}

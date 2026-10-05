@@ -1,0 +1,30 @@
+/* Table Visibility Fix for Light Mode - Enhanced */
+/* This is a backup fix file - main fixes are in custom.css */
+
+[data-bs-theme=light] .table,
+body:not([data-bs-theme=dark]) .table {
+    color: #18181a;
+}
+
+[data-bs-theme=light] .table td,
+[data-bs-theme=light] .table th,
+body:not([data-bs-theme=dark]) .table td,
+body:not([data-bs-theme=dark]) .table th {
+    color: #18181a;
+}
+
+/* Ensure backgrounds are light enough for the dark text */
+[data-bs-theme=light] .table thead th,
+body:not([data-bs-theme=dark]) .table thead th {
+    background-color: #EFF1F4;
+    color: #18181a;
+}
+
+[data-bs-theme=light] .table td,
+body:not([data-bs-theme=dark]) .table td {
+    background-color: #ffffff;
+    color: #18181a;
+}
+
+/* Do NOT force button text to white - gold buttons need dark text */
+/* Button text handled in custom.css */

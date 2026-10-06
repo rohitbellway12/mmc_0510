@@ -44,6 +44,7 @@ Route::group(['prefix' => 'customer', 'as' => 'customer.', 'namespace' => 'Api\V
     });
 
     Route::group(['prefix' => 'estimate', 'as' => 'estimate.'], function () {
+        Route::get('list', [\Modules\BookingModule\Http\Controllers\Api\V1\Customer\BookingEstimateController::class, 'index'])->withoutMiddleware('auth:api');
         Route::get('{token}', [\Modules\BookingModule\Http\Controllers\Api\V1\Customer\BookingEstimateController::class, 'details'])->withoutMiddleware('auth:api');
         Route::post('accept', [\Modules\BookingModule\Http\Controllers\Api\V1\Customer\BookingEstimateController::class, 'accept'])->withoutMiddleware('auth:api');
     });

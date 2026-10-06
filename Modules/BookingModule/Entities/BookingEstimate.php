@@ -137,6 +137,10 @@ class BookingEstimate extends Model
 
     public function getWebUrlAttribute(): string
     {
+        $frontendUrl = env('FRONTEND_URL');
+        if (!empty($frontendUrl)) {
+            return rtrim($frontendUrl, '/') . '/estimate/' . $this->link_token;
+        }
         return url('/estimate/' . $this->link_token);
     }
 

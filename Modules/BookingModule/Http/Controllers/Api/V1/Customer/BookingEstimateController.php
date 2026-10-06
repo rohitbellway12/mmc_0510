@@ -27,7 +27,7 @@ class BookingEstimateController extends Controller
                 'service',
                 'category',
                 'provider.owner',
-                'provider.zones',
+                'provider.zone',
                 'booking',
                 'car',
                 'carBooking'
@@ -259,4 +259,52 @@ class BookingEstimateController extends Controller
             'booking' => $booking,
         ]), 200);
     }
+
+    /**
+     * List all quotations/estimates for the customer
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $limit = $request->get('limit', 20);
+        $offset = $request->get('offset', 1);
+        $status = $request->get('status', 'all');
+
+        $user = auth('api')->user();
+
+        $query = BookingEstimate::with([
+            'service',
+            'category',
+            'provider.owner',
+            'booking',
+            'car',
+            'carBooking'
+        ]);
+
+        if ($user) {
+            $query->where(function ($q) use ($user) {
+                $q->where('customer_id', $user->id)
+                    ->orWhere('customer_phone', $user->phone);
+                if (!empty($user->email)) {
+                    $q->orWhere('customer_email', $user->email);
+                }
+            });
+        } elseif ($request->filled('phone')) {
+            $query->where('customer_phone', $request->phone);
+        } elseif ($request->filled('email')) {
+            $query->where('customer_email', $request->email);
+        } else {
+            return response()->json(response_formatter(DEFAULT_400, null, [
+                ['error_code' => 'auth', 'message' => translate('Please provide customer authentication token or phone/email query.')]
+            ]), 400);
+        }
+
+        if ($status !== 'all' && in_array($status, ['pending', 'accepted', 'canceled'])) {
+            $query->where('status', $status);
+        }
+
+        $estimates = $query->orderBy('created_at', 'desc')->paginate($limit, ['*'], 'page', $offset);
+
+        return response()->json(response_formatter(DEFAULT_200, $estimates), 200);
+    }
 }
+

@@ -440,30 +440,20 @@ class BookingEstimateController extends Controller
     /**
      * Public Customer Web View for Deep Link Fallback (e.g. https://mmcclub.co.uk/estimate/{token})
      */
-    public function customerView(string $token): Renderable
+    public function customerView(string $token)
     {
         $estimate = BookingEstimate::where('link_token', $token)
             ->orWhere('id', $token)
-            ->with(['service', 'category', 'provider.owner', 'booking', 'car', 'carBooking'])
             ->firstOrFail();
 
-        $playstoreSetting = business_config('app_url_playstore', 'landing_button_and_links')?->live_values;
-        $appstoreSetting = business_config('app_url_appstore', 'landing_button_and_links')?->live_values;
+        $frontendUrl = env('FRONTEND_URL');
+        if (!empty($frontendUrl)) {
+            return redirect()->to(rtrim($frontendUrl, '/') . '/estimate/' . $estimate->link_token);
+        }
 
-        $packageName = env('CUSTOMER_APP_PACKAGE_NAME', 'com.mmc.customer');
-        $appScheme = env('CUSTOMER_APP_SCHEME', 'mmc');
+        $estimate->load(['service', 'category', 'provider.owner', 'booking', 'car', 'carBooking']);
 
-        $playStoreUrl = env('PLAY_STORE_URL') 
-            ?: ((!empty($playstoreSetting) && $playstoreSetting != '/' && filter_var($playstoreSetting, FILTER_VALIDATE_URL)) 
-                ? $playstoreSetting 
-                : 'https://play.google.com/store/apps/details?id=' . $packageName);
-
-        $appStoreUrl = env('APP_STORE_URL') 
-            ?: ((!empty($appstoreSetting) && $appstoreSetting != '/' && filter_var($appstoreSetting, FILTER_VALIDATE_URL)) 
-                ? $appstoreSetting 
-                : 'https://apps.apple.com/app/mmc-club/id6440000000');
-
-        return view('bookingmodule::customer.estimate.view', compact('estimate', 'playStoreUrl', 'appStoreUrl', 'packageName', 'appScheme'));
+        return view('bookingmodule::customer.estimate.view', compact('estimate'));
     }
 
     /**

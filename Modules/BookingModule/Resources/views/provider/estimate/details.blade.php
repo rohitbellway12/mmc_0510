@@ -44,10 +44,10 @@
                         <div class="col-lg-7">
                             <h4 class="text-primary fw-bold mb-1 d-flex align-items-center gap-2">
                                 <span class="material-icons">share</span>
-                                {{ translate('Customer_Shareable_Link_&_Deep_Link') }}
+                                {{ translate('Customer_Shareable_Link') }}
                             </h4>
                             <p class="text-muted fz-13 mb-3">
-                                {{ translate('Send this link to the customer via WhatsApp, SMS, or Email. If customer clicks on a mobile phone with the MMC app installed, the app will open directly! Otherwise, a mobile-friendly web page opens where they can accept.') }}
+                                {{ translate('Send this quotation link to the customer via WhatsApp, SMS, or Email. Customer can view quotation details and accept online.') }}
                             </p>
                             <div class="input-group">
                                 <input type="text" id="share_link_input" class="form-control bg-white fw-medium" value="{{ $estimate->web_url }}" readonly>
@@ -56,14 +56,12 @@
                                     {{ translate('Copy_Link') }}
                                 </button>
                             </div>
-                            <div class="fz-11 text-muted mt-1">
-                                <strong>{{ translate('Deep Link URI') }}:</strong> <code>{{ $estimate->deep_link_url }}</code>
-                            </div>
                         </div>
                         <div class="col-lg-5 text-lg-end">
                             @php
                                 $cleanPhone = preg_replace('/[^0-9]/', '', $estimate->customer_phone);
-                                $waText = urlencode(translate("Hello {$estimate->customer_name}, here is your quotation/booking estimate for {$estimate->service?->name} from " . (auth()->user()->provider->company_name ?? 'our service') . ": {$estimate->web_url}"));
+                                $itemTitle = ($estimate->module_type === 'car_hire' || $estimate->module_type === 'chauffeur') ? $estimate->car_model : ($estimate->service?->name ?? 'service');
+                                $waText = urlencode(translate("Hello {$estimate->customer_name}, here is your quotation/booking estimate for {$itemTitle} from " . (auth()->user()->provider->company_name ?? 'our service') . ": {$estimate->web_url}"));
                             @endphp
                             <a href="https://api.whatsapp.com/send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank" 
                                class="btn btn-success d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold">

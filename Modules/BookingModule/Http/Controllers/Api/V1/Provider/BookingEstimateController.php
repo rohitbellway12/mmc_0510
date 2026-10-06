@@ -167,7 +167,7 @@ class BookingEstimateController extends Controller
         $moduleType = $request->get('module_type', 'general');
 
         if ($moduleType === 'car_hire' || $moduleType === 'chauffeur') {
-            $validator = Validator::make($request->all(), [
+            $rules = [
                 'customer_name' => 'required|string|max:191',
                 'customer_phone' => 'required|string|max:30',
                 'customer_email' => 'nullable|email|max:191',
@@ -176,13 +176,23 @@ class BookingEstimateController extends Controller
                 'end_date' => 'required|date|after_or_equal:start_date',
                 'pickup_time' => 'required',
                 'drop_time' => 'required',
-                'pickup_type' => 'required|in:self,delivery,chauffeur',
-                'pickup_location' => 'required_if:pickup_type,chauffeur',
-                'drop_location' => 'required_if:pickup_type,chauffeur',
-                'delivery_address' => 'required_if:pickup_type,delivery',
+                'pricing_type' => 'nullable|in:daily,hourly,auto',
                 'price' => 'required|numeric|min:0',
+                'rent_amount' => 'nullable|numeric|min:0',
+                'delivery_fee' => 'nullable|numeric|min:0',
+                'security_deposit' => 'nullable|numeric|min:0',
                 'notes' => 'nullable|string',
-            ]);
+            ];
+
+            if ($moduleType === 'chauffeur') {
+                $rules['pickup_location'] = 'required|string|max:255';
+                $rules['drop_location'] = 'required|string|max:255';
+            } else {
+                $rules['pickup_type'] = 'required|in:self,delivery,chauffeur';
+                $rules['delivery_address'] = 'required_if:pickup_type,delivery';
+            }
+
+            $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
                 return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
@@ -202,13 +212,19 @@ class BookingEstimateController extends Controller
                 })
                 ->first();
 
+            $pickupType = $moduleType === 'chauffeur' ? 'chauffeur' : $request->get('pickup_type', 'self');
+            $pricingType = $request->get('pricing_type', 'daily');
+            if ($pricingType === 'auto' || empty($pricingType)) {
+                $pricingType = $car->pricing_type ?? 'daily';
+            }
+
             $estimate = new BookingEstimate();
             $estimate->provider_id = $provider->id;
             $estimate->customer_id = $existingCustomer?->id;
             $estimate->customer_name = $request->customer_name;
             $estimate->customer_phone = $request->customer_phone;
             $estimate->customer_email = $request->customer_email;
-            $estimate->customer_address = $request->pickup_type == 'delivery' ? $request->delivery_address : ($request->customer_address ?? $request->pickup_location);
+            $estimate->customer_address = $pickupType == 'delivery' ? $request->delivery_address : ($request->customer_address ?? $request->pickup_location);
             $estimate->module_type = $moduleType;
             $estimate->car_id = $car->id;
             $estimate->service_id = null;
@@ -221,16 +237,30 @@ class BookingEstimateController extends Controller
             $estimate->end_date = $request->end_date;
             $estimate->pickup_time = $request->pickup_time;
             $estimate->drop_time = $request->drop_time;
-            $estimate->pickup_type = $request->pickup_type;
+            $estimate->pickup_type = $pickupType;
+            $estimate->pricing_type = $pricingType;
             $estimate->pickup_location = $request->pickup_location;
             $estimate->drop_location = $request->drop_location;
+            if ($request->has('pickup_coordinates')) {
+                $estimate->pickup_coordinates = is_array($request->pickup_coordinates) ? $request->pickup_coordinates : json_decode($request->pickup_coordinates, true);
+            }
+            if ($request->has('drop_coordinates')) {
+                $estimate->drop_coordinates = is_array($request->drop_coordinates) ? $request->drop_coordinates : json_decode($request->drop_coordinates, true);
+            }
             $estimate->delivery_address = $request->delivery_address;
+            if ($request->has('delivery_latitude')) {
+                $estimate->delivery_latitude = $request->delivery_latitude;
+            }
+            if ($request->has('delivery_longitude')) {
+                $estimate->delivery_longitude = $request->delivery_longitude;
+            }
+
             $securityDeposit = ($moduleType === 'car_hire' && !empty($car->security_deposit)) ? floatval($car->security_deposit) : 0;
             if ($request->filled('security_deposit')) {
                 $securityDeposit = floatval($request->security_deposit);
             }
 
-            $deliveryFee = ($request->pickup_type === 'delivery' && !empty($car->delivery_fee)) ? floatval($car->delivery_fee) : 0;
+            $deliveryFee = ($pickupType === 'delivery' && !empty($car->delivery_fee)) ? floatval($car->delivery_fee) : 0;
             if ($request->filled('delivery_fee')) {
                 $deliveryFee = floatval($request->delivery_fee);
             }

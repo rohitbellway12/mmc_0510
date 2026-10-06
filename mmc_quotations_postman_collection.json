@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "9d8e52a1-8d23-4521-9e8c-8f319b22a014",
 		"name": "MMC - Quotations & Booking Estimates API",
-		"description": "Postman collection for Provider-initiated quotations/estimates on behalf of customers for both Automotive Services AND Car Hire & Chauffeur Services.",
+		"description": "Postman collection for Provider-initiated quotations/estimates on behalf of customers for Automotive Services, Car Hire (Self-Drive / Delivery with Security Deposit), and Chauffeur Services (Hourly / Daily), including complete Customer acceptance options (Cash, 100% Full Stripe, 25% Partial Stripe, and Wallet).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -43,7 +43,7 @@
 								}
 							]
 						},
-						"description": "Search existing customers by name, phone or email for quick auto-fill."
+						"description": "Search existing customers by name, phone or email for quick auto-fill when creating quotation."
 					},
 					"response": []
 				},
@@ -105,12 +105,12 @@
 								"cars"
 							]
 						},
-						"description": "Returns provider's active fleet cars (daily_rate, hourly_rate, pricing_type, model, brand, reg) to create Car Hire / Chauffeur quotes."
+						"description": "Returns provider's active fleet cars including daily_rate, hourly_rate, delivery_fee, security_deposit, pricing_type, model, brand, reg, etc."
 					},
 					"response": []
 				},
 				{
-					"name": "4. Create Car Hire / Chauffeur Quotation",
+					"name": "4. Create Car Hire Quotation (Self-Drive or Delivery with Refundable Deposit)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -130,7 +130,7 @@
 									"key": "module_type",
 									"value": "car_hire",
 									"type": "text",
-									"description": "car_hire or chauffeur"
+									"description": "Must be 'car_hire'"
 								},
 								{
 									"key": "customer_name",
@@ -149,15 +149,21 @@
 								},
 								{
 									"key": "car_id",
-									"value": "16",
+									"value": "49",
 									"type": "text",
-									"description": "ID from provider cars list"
+									"description": "Vehicle ID from provider cars API"
+								},
+								{
+									"key": "pricing_type",
+									"value": "daily",
+									"type": "text",
+									"description": "daily | hourly | auto (defaults to car pricing_type)"
 								},
 								{
 									"key": "pickup_type",
-									"value": "chauffeur",
+									"value": "delivery",
 									"type": "text",
-									"description": "self | delivery | chauffeur"
+									"description": "self | delivery"
 								},
 								{
 									"key": "start_date",
@@ -166,7 +172,7 @@
 								},
 								{
 									"key": "end_date",
-									"value": "2026-03-16",
+									"value": "2026-03-17",
 									"type": "text"
 								},
 								{
@@ -176,36 +182,54 @@
 								},
 								{
 									"key": "drop_time",
-									"value": "10:00 PM",
+									"value": "10:00 AM",
 									"type": "text"
 								},
 								{
-									"key": "pickup_location",
-									"value": "Vijay Nagar, Indore",
-									"type": "text",
-									"description": "Required if pickup_type is chauffeur"
-								},
-								{
-									"key": "drop_location",
-									"value": "Indore Airport",
-									"type": "text",
-									"description": "Required if pickup_type is chauffeur"
-								},
-								{
 									"key": "delivery_address",
-									"value": "",
+									"value": "123 Baker Street, London NW1 6XE",
 									"type": "text",
 									"description": "Required if pickup_type is delivery"
 								},
 								{
-									"key": "price",
-									"value": "250.00",
+									"key": "delivery_latitude",
+									"value": "51.5237",
 									"type": "text",
-									"description": "Agreed / Quoted price"
+									"description": "Optional: Delivery GPS Latitude"
+								},
+								{
+									"key": "delivery_longitude",
+									"value": "-0.1585",
+									"type": "text",
+									"description": "Optional: Delivery GPS Longitude"
+								},
+								{
+									"key": "rent_amount",
+									"value": "200.00",
+									"type": "text",
+									"description": "Vehicle rental charge for selected duration"
+								},
+								{
+									"key": "delivery_fee",
+									"value": "25.00",
+									"type": "text",
+									"description": "Vehicle delivery charge if applicable"
+								},
+								{
+									"key": "security_deposit",
+									"value": "500.00",
+									"type": "text",
+									"description": "Refundable security deposit (auto-set from car if not overridden)"
+								},
+								{
+									"key": "price",
+									"value": "725.00",
+									"type": "text",
+									"description": "Total quote price (rent_amount + delivery_fee + security_deposit)"
 								},
 								{
 									"key": "notes",
-									"value": "Includes fuel, tolls, and dedicated chauffeur.",
+									"value": "Vehicle must be returned with full tank. Deposit is refundable after vehicle return inspection.",
 									"type": "text"
 								}
 							]
@@ -223,12 +247,147 @@
 								"create"
 							]
 						},
-						"description": "Provider creates a Car Hire or Chauffeur quotation for a customer with their fleet vehicle."
+						"description": "Provider creates a Car Hire (Self-Drive or Delivery) quotation. Supports refundable security deposit, delivery fees, and rental amount breakdown."
 					},
 					"response": []
 				},
 				{
-					"name": "5. Create Garage / Automotive Repair Quotation",
+					"name": "5. Create Chauffeur Quotation (Hourly / Daily with Pickup & Drop)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{provider_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "module_type",
+									"value": "chauffeur",
+									"type": "text",
+									"description": "Must be 'chauffeur'"
+								},
+								{
+									"key": "customer_name",
+									"value": "Rahul Sharma",
+									"type": "text"
+								},
+								{
+									"key": "customer_phone",
+									"value": "+447123456789",
+									"type": "text"
+								},
+								{
+									"key": "customer_email",
+									"value": "rahul@example.com",
+									"type": "text"
+								},
+								{
+									"key": "car_id",
+									"value": "49",
+									"type": "text",
+									"description": "Vehicle ID from provider cars API"
+								},
+								{
+									"key": "pricing_type",
+									"value": "hourly",
+									"type": "text",
+									"description": "hourly | daily"
+								},
+								{
+									"key": "pickup_type",
+									"value": "chauffeur",
+									"type": "text",
+									"description": "Always chauffeur"
+								},
+								{
+									"key": "start_date",
+									"value": "2026-03-15",
+									"type": "text"
+								},
+								{
+									"key": "end_date",
+									"value": "2026-03-15",
+									"type": "text"
+								},
+								{
+									"key": "pickup_time",
+									"value": "10:00 AM",
+									"type": "text"
+								},
+								{
+									"key": "drop_time",
+									"value": "06:00 PM",
+									"type": "text"
+								},
+								{
+									"key": "pickup_location",
+									"value": "The Ritz Hotel, 150 Piccadilly, London W1J 9BR",
+									"type": "text",
+									"description": "Required for chauffeur service"
+								},
+								{
+									"key": "pickup_coordinates",
+									"value": "{\"lat\":51.5071,\"lng\":-0.1416}",
+									"type": "text",
+									"description": "Optional: JSON coordinates string or object"
+								},
+								{
+									"key": "drop_location",
+									"value": "Heathrow Airport Terminal 5, London",
+									"type": "text",
+									"description": "Required for chauffeur service"
+								},
+								{
+									"key": "drop_coordinates",
+									"value": "{\"lat\":51.4700,\"lng\":-0.4543}",
+									"type": "text",
+									"description": "Optional: JSON coordinates string or object"
+								},
+								{
+									"key": "rent_amount",
+									"value": "350.00",
+									"type": "text"
+								},
+								{
+									"key": "price",
+									"value": "350.00",
+									"type": "text",
+									"description": "Total agreed chauffeur quote price"
+								},
+								{
+									"key": "notes",
+									"value": "Includes executive VIP chauffeur, bottled water, fuel, parking, and congestion charges.",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/provider/estimate/create",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"provider",
+								"estimate",
+								"create"
+							]
+						},
+						"description": "Provider creates an Executive Chauffeur quotation with pickup & drop locations, hourly/daily pricing."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Create Garage / Automotive Repair Quotation",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -265,6 +424,11 @@
 									"type": "text"
 								},
 								{
+									"key": "customer_address",
+									"value": "45 Park Lane, London W1K 1PN",
+									"type": "text"
+								},
+								{
 									"key": "service_id",
 									"value": "1bfb175c-91a2-4c80-9690-c362320665d9",
 									"type": "text"
@@ -281,12 +445,12 @@
 								},
 								{
 									"key": "car_model",
-									"value": "Hyundai Creta 2022",
+									"value": "Audi A4 2021",
 									"type": "text"
 								},
 								{
 									"key": "car_registration_number",
-									"value": "MH 12 AB 1234",
+									"value": "LD21 ABC",
 									"type": "text"
 								},
 								{
@@ -296,7 +460,7 @@
 								},
 								{
 									"key": "notes",
-									"value": "Includes OEM paint match.",
+									"value": "Includes OEM color match finish and 1-year guarantee.",
 									"type": "text"
 								},
 								{
@@ -319,12 +483,12 @@
 								"create"
 							]
 						},
-						"description": "Provider creates a Garage / Automotive Repair quote for customer's vehicle."
+						"description": "Provider creates a Garage / Automotive Repair quote for customer's vehicle with optional damage image upload."
 					},
 					"response": []
 				},
 				{
-					"name": "6. List Quotations / Estimates",
+					"name": "7. List Quotations / Estimates",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -352,7 +516,8 @@
 							"query": [
 								{
 									"key": "status",
-									"value": "all"
+									"value": "all",
+									"description": "all | pending | accepted | rejected | expired | cancelled"
 								},
 								{
 									"key": "limit",
@@ -367,12 +532,13 @@
 									"value": ""
 								}
 							]
-						}
+						},
+						"description": "Returns paginated list of estimates created by provider with status filter."
 					},
 					"response": []
 				},
 				{
-					"name": "7. View Single Quotation Details",
+					"name": "8. View Single Quotation Details",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -398,12 +564,13 @@
 								"details",
 								"{{estimate_id}}"
 							]
-						}
+						},
+						"description": "Returns full quotation details including pricing breakdown, vehicle info, customer info, and booking link."
 					},
 					"response": []
 				},
 				{
-					"name": "8. Cancel Quotation",
+					"name": "9. Cancel Quotation",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -429,7 +596,8 @@
 								"cancel",
 								"{{estimate_id}}"
 							]
-						}
+						},
+						"description": "Provider cancels a pending quotation."
 					},
 					"response": []
 				}
@@ -439,7 +607,48 @@
 			"name": "Customer - Quotation & Deep Link Booking",
 			"item": [
 				{
-					"name": "1. Get Quotation Details (Deep Link Landing)",
+					"name": "1. Get Customer Estimates List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/estimate/list?limit=15&offset=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"estimate",
+								"list"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "15"
+								},
+								{
+									"key": "offset",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Returns list of quotations received by the logged-in customer."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get Quotation Details (Deep Link Landing)",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -461,12 +670,12 @@
 								"{{link_token}}"
 							]
 						},
-						"description": "Public/Unauthenticated API called when customer clicks deep link (mmc://estimate/EST-xxx). Returns full quote details for both car hire and garage services."
+						"description": "Public/Unauthenticated API called when customer clicks deep link (mmc://estimate/EST-xxx). Returns full quote details for both car hire, chauffeur and garage services."
 					},
 					"response": []
 				},
 				{
-					"name": "2. Accept Quotation & Create Booking",
+					"name": "3. Accept Quotation - Cash After Service",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -501,7 +710,127 @@
 								"accept"
 							]
 						},
-						"description": "Customer accepts quotation. If car hire/chauffeur, creates CarBooking and mirrors to Booking. If garage service, creates standard Booking."
+						"description": "Customer accepts quotation with Cash After Service. Creates booking immediately with unpaid status."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Accept Quotation - Stripe (100% Full Digital Payment)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"description": "Optional: If customer is logged in"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"link_token\": \"{{link_token}}\",\n    \"payment_method\": \"stripe\",\n    \"is_partial\": 0,\n    \"callback\": \"{{base_url}}/api/v1/digital-payment-booking-response\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/estimate/accept",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"estimate",
+								"accept"
+							]
+						},
+						"description": "Customer pays 100% full amount using Stripe. Returns digital payment redirect URL or token."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Accept Quotation - Stripe (25% Partial Advance Payment)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"description": "Optional: If customer is logged in"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"link_token\": \"{{link_token}}\",\n    \"payment_method\": \"stripe\",\n    \"is_partial\": 1,\n    \"callback\": \"{{base_url}}/api/v1/digital-payment-booking-response\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/estimate/accept",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"estimate",
+								"accept"
+							]
+						},
+						"description": "Customer pays 25% advance partial payment using Stripe. Remaining 75% remains due."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Accept Quotation - Wallet Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{customer_token}}",
+								"description": "Required: Logged in customer with wallet balance"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"link_token\": \"{{link_token}}\",\n    \"payment_method\": \"wallet_payment\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customer/estimate/accept",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"customer",
+								"estimate",
+								"accept"
+							]
+						},
+						"description": "Customer pays quotation total using their in-app wallet balance."
 					},
 					"response": []
 				}

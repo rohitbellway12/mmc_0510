@@ -42,6 +42,7 @@ class BookingEstimate extends Model
         'pickup_time',
         'drop_time',
         'pickup_type',
+        'pricing_type',
         'pickup_location',
         'drop_location',
         'pickup_coordinates',
@@ -51,6 +52,9 @@ class BookingEstimate extends Model
         'delivery_longitude',
         'service_type',
         'price',
+        'rent_amount',
+        'delivery_fee',
+        'security_deposit',
         'tax_amount',
         'discount_amount',
         'total_amount',
@@ -64,6 +68,9 @@ class BookingEstimate extends Model
 
     protected $casts = [
         'price' => 'float',
+        'rent_amount' => 'float',
+        'delivery_fee' => 'float',
+        'security_deposit' => 'float',
         'tax_amount' => 'float',
         'discount_amount' => 'float',
         'total_amount' => 'float',

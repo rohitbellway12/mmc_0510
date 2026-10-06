@@ -890,8 +890,8 @@
 
                                     <div class="collapse show" id="customerInfoContent">
                                         <div class="py-3 px-4">
-                                            @php($customer_name = $booking?->service_address?->contact_person_name)
-                                            @php($customer_phone = $booking?->service_address?->contact_person_number)
+                                            @php($customer_name = $booking?->service_address?->contact_person_name ?? ($booking?->customer ? ($booking->customer->first_name . ' ' . $booking->customer->last_name) : ''))
+                                            @php($customer_phone = $booking?->service_address?->contact_person_number ?? $booking?->customer?->phone)
 
                                             <div class="media gap-2 flex-wrap">
                                                 @if (!$booking?->is_guest && $booking?->customer)
@@ -1132,9 +1132,16 @@
                                                             </div>
                                                             <div class="d-flex flex-wrap gap-2 mt-2">
                                                                 @foreach ($booking->evidence_photos as $img)
-                                                                    <a href="{{ asset('storage/app/public/booking/' . $img) }}"
+                                                                    <?php
+                                                                        $imgSrc = file_exists(storage_path('app/public/booking/' . $img)) 
+                                                                            ? asset('storage/app/public/booking/' . $img) 
+                                                                            : (file_exists(storage_path('app/public/estimate/car/' . $img)) 
+                                                                                ? asset('storage/app/public/estimate/car/' . $img) 
+                                                                                : asset('storage/app/public/booking/' . $img));
+                                                                    ?>
+                                                                    <a href="{{ $imgSrc }}"
                                                                         target="_blank">
-                                                                        <img src="{{ asset('storage/app/public/booking/' . $img) }}"
+                                                                        <img src="{{ $imgSrc }}"
                                                                             class="rounded border shadow-sm object-fit-cover"
                                                                             width="100" height="75"
                                                                             style="cursor: zoom-in;">

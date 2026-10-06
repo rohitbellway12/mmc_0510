@@ -133,11 +133,13 @@
         </div>
     </div>
 </div>
+@push('script')
 <script>
     "use strict";
 
-    $(".remove-service-row").on('click', function (){
+    $(document).on('click', '.remove-service-row', function (){
         let row = $(this).data('row');
-        removeServiceRow(row)
-    })
+        removeServiceRow(row);
+    });
 </script>
+@endpush

@@ -356,6 +356,16 @@
                                 <span class="info-label">{{ translate('Rental Type') }}</span>
                                 <span class="info-value">{{ ucfirst($estimate->pickup_type ?? 'Rental') }}</span>
                             </div>
+                            @if($estimate->pricing_type)
+                                <div class="info-item">
+                                    <span class="info-label">{{ translate('Billing Mode') }}</span>
+                                    <span class="info-value">
+                                        <span class="badge {{ $estimate->pricing_type === 'hourly' ? 'badge-pending' : 'badge-accepted' }}" style="font-size: 12px; padding: 3px 8px;">
+                                            {{ ucfirst($estimate->pricing_type) }} {{ translate('Rate') }}
+                                        </span>
+                                    </span>
+                                </div>
+                            @endif
                             <div class="info-item">
                                 <span class="info-label">{{ translate('Start Date & Time') }}</span>
                                 <span class="info-value">
@@ -439,10 +449,32 @@
                         {{ translate('Price Breakdown') }}
                     </div>
                     <div class="price-summary">
-                        <div class="price-row">
-                            <span>{{ translate('Subtotal') }}</span>
-                            <span class="fw-semibold">{{ with_currency_symbol($estimate->price) }}</span>
-                        </div>
+                        @if($isCarBooking && (($estimate->security_deposit ?? 0) > 0 || ($estimate->delivery_fee ?? 0) > 0))
+                            <div class="price-row">
+                                <span>{{ translate('Base Rental Fee') }}</span>
+                                <span class="fw-semibold">{{ with_currency_symbol($estimate->rent_amount > 0 ? $estimate->rent_amount : ($estimate->price - ($estimate->delivery_fee ?? 0) - ($estimate->security_deposit ?? 0))) }}</span>
+                            </div>
+                            @if(($estimate->delivery_fee ?? 0) > 0)
+                                <div class="price-row">
+                                    <span>{{ translate('Doorstep Delivery Fee') }}</span>
+                                    <span>{{ with_currency_symbol($estimate->delivery_fee) }}</span>
+                                </div>
+                            @endif
+                            @if(($estimate->security_deposit ?? 0) > 0)
+                                <div class="price-row" style="background: rgba(4, 97, 165, 0.05); padding: 8px 10px; border-radius: 6px;">
+                                    <span>
+                                        {{ translate('Refundable Security Deposit') }}
+                                        <small style="display: block; font-size: 11px; color: var(--gray-500);">({{ translate('Refundable after safe return') }})</small>
+                                    </span>
+                                    <span class="fw-bold" style="color: #0461A5;">{{ with_currency_symbol($estimate->security_deposit) }}</span>
+                                </div>
+                            @endif
+                        @else
+                            <div class="price-row">
+                                <span>{{ translate('Subtotal') }}</span>
+                                <span class="fw-semibold">{{ with_currency_symbol($estimate->price) }}</span>
+                            </div>
+                        @endif
                         @if($estimate->tax_amount > 0)
                             <div class="price-row">
                                 <span>{{ translate('Tax / VAT') }}</span>

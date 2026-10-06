@@ -253,7 +253,18 @@ class BookingController extends Controller
             return redirect(route('provider.booking.list', ['booking_status' => 'pending']));
         }
 
-        $booking->service_address = $booking->service_address_location != null ? json_decode($booking->service_address_location) : $booking->service_address;
+        if ($booking->service_address_location != null) {
+            $decoded = json_decode($booking->service_address_location);
+            if (is_object($decoded)) {
+                $booking->service_address = $decoded;
+            } elseif (is_string($booking->service_address_location) && !empty($booking->service_address_location)) {
+                $booking->service_address = (object)[
+                    'address' => $booking->service_address_location,
+                    'contact_person_name' => $booking->customer ? ($booking->customer->first_name . ' ' . $booking->customer->last_name) : null,
+                    'contact_person_number' => $booking->customer?->phone,
+                ];
+            }
+        }
 
         if ($booking['booking_status'] != 'pending' && $booking['provider_id'] != $request->user()->provider->id) {
             Toastr::error(translate(ACCESS_DENIED['message']));

@@ -153,6 +153,4 @@
     </div>
 </div>
 
-<script>
 
-</script>

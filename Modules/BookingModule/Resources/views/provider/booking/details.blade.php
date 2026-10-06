@@ -86,9 +86,19 @@
                                                 ({{($booking?->booking_offline_payments?->first()?->method_name)}})
                                             @endif</span>
                                     </h5>
-                                    <p>
-                                        <span>{{translate('Amount')}} : </span> {{with_currency_symbol($booking->total_booking_amount)}}
+                                    <p class="mb-1">
+                                        <span>{{translate('Total Amount')}} : </span> {{with_currency_symbol($booking->total_booking_amount)}}
                                     </p>
+                                    @if($booking->booking_partial_payments->isNotEmpty())
+                                        <p class="mb-1 text-success fw-semibold">
+                                            <span>{{translate('Paid Amount')}} : </span> {{with_currency_symbol($booking->booking_partial_payments->sum('paid_amount'))}}
+                                        </p>
+                                        @if($booking->booking_partial_payments->sum('due_amount') > 0)
+                                            <p class="mb-1 text-danger fw-semibold">
+                                                <span>{{translate('Due Amount')}} : </span> {{with_currency_symbol($booking->booking_partial_payments->sum('due_amount'))}}
+                                            </p>
+                                        @endif
+                                    @endif
                                     @if($booking->payment_method == 'offline_payment')
                                         <h4 class="mb-2">{{translate('Payment_Info')}}</h4>
                                         @if($booking->booking_offline_payments->isNotEmpty())
@@ -120,12 +130,11 @@
                                     @endif
                                     <p class="mb-2">
                                         <span>{{translate('Payment_Status')}} : </span>
-                                        <span class="text-{{$booking->is_paid ? 'success' : 'danger'}}"
-                                              id="payment_status__span">{{$booking->is_paid ? translate('Paid') : translate('Unpaid')}}</span>
-
-                                        @if($booking->booking_partial_payments->isNotEmpty() && ($booking->booking_partial_payments->sum('due_amount') > 0 || !$booking->is_paid))
-                                            <span
-                                                class="small badge badge-info text-success p-1 fz-10">{{translate('Partially paid')}}</span>
+                                        @if($booking->booking_partial_payments->isNotEmpty() && $booking->booking_partial_payments->sum('due_amount') > 0 && !$booking->is_paid)
+                                            <span class="badge badge-info text-success p-1 fz-12 fw-bold">{{translate('Partially paid')}}</span>
+                                        @else
+                                            <span class="text-{{$booking->is_paid ? 'success' : 'danger'}}"
+                                                  id="payment_status__span">{{$booking->is_paid ? translate('Paid') : translate('Unpaid')}}</span>
                                         @endif
                                     </p>
                                     <h5 class="d-flex gap-1 flex-wrap align-items-center">
@@ -365,8 +374,11 @@
                             <hr>
                             <div class="d-flex justify-content-between align-items-center gap-10 form-control"
                                  id="payment-status-div">
-                                <span class="title-color">
+                                <span class="title-color d-flex align-items-center gap-1">
                                     {{translate('Payment Status')}}
+                                    @if($booking->booking_partial_payments->isNotEmpty() && $booking->booking_partial_payments->sum('due_amount') > 0 && !$booking->is_paid)
+                                        <span class="badge badge-info text-success p-1 fz-10">{{translate('Partially paid')}}</span>
+                                    @endif
                                 </span>
 
                                 <div class="on-off-toggle">
@@ -660,8 +672,8 @@
                                     </div>
 
                                     <div class="py-3 px-4">
-                                        @php($customer_name = $booking?->service_address?->contact_person_name)
-                                        @php($customer_phone = $booking?->service_address?->contact_person_number)
+                                        @php($customer_name = $booking?->service_address?->contact_person_name ?? ($booking?->customer ? ($booking->customer->first_name . ' ' . $booking->customer->last_name) : ''))
+                                        @php($customer_phone = $booking?->service_address?->contact_person_number ?? $booking?->customer?->phone)
 
                                         <div class="media gap-2 flex-wrap">
                                             @if(!$booking?->is_guest && $booking?->customer)
@@ -771,8 +783,15 @@
                                                         </div>
                                                         <div class="d-flex flex-wrap gap-2 mt-2">
                                                             @foreach ($booking->evidence_photos as $img)
-                                                                <a href="{{ asset('storage/app/public/booking/' . $img) }}" target="_blank">
-                                                                    <img src="{{ asset('storage/app/public/booking/' . $img) }}"
+                                                                <?php
+                                                                    $imgSrc = file_exists(storage_path('app/public/booking/' . $img)) 
+                                                                        ? asset('storage/app/public/booking/' . $img) 
+                                                                        : (file_exists(storage_path('app/public/estimate/car/' . $img)) 
+                                                                            ? asset('storage/app/public/estimate/car/' . $img) 
+                                                                            : asset('storage/app/public/booking/' . $img));
+                                                                ?>
+                                                                <a href="{{ $imgSrc }}" target="_blank">
+                                                                    <img src="{{ $imgSrc }}"
                                                                          class="rounded border shadow-sm object-fit-cover"
                                                                          width="100" height="75" style="cursor: zoom-in;">
                                                                 </a>

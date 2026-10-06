@@ -21,7 +21,7 @@
             <form action="{{ route('provider.estimate.store') }}" method="POST" enctype="multipart/form-data" id="estimate_form">
                 @csrf
 
-                {{-- Top Service Mode Selector (Garage vs Car Hire/Chauffeur) --}}
+                {{-- Top Service Mode Selector (Car Hire vs Chauffeur vs Garage) --}}
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body p-4">
                         <label class="form-label fw-bold fz-14 text-dark mb-3 d-flex align-items-center gap-2">
@@ -29,27 +29,39 @@
                             {{ translate('Select Quotation Category / Service Type') }}
                         </label>
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="service-type-card p-3 border rounded-3 d-flex align-items-center gap-3 cursor-pointer w-100 position-relative h-100 active-type" id="card_car_hire">
                                     <input type="radio" name="module_type" value="car_hire" class="form-check-input mt-0 position-absolute" style="top: 16px; right: 16px;" checked>
-                                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px;">
-                                        <span class="material-icons fs-28">directions_car</span>
+                                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                                        <span class="material-icons fs-26">directions_car</span>
                                     </div>
                                     <div>
-                                        <h5 class="fw-bold mb-1 text-dark">{{ translate('Car Hire & Chauffeur Services') }}</h5>
-                                        <p class="fz-12 text-muted mb-0">{{ translate('Book a vehicle from your fleet for self-drive, doorstep delivery, or chauffeur ride.') }}</p>
+                                        <h5 class="fw-bold mb-1 text-dark fz-15">{{ translate('Car Hire') }}</h5>
+                                        <p class="fz-12 text-muted mb-0">{{ translate('Self-drive rental or doorstep vehicle delivery.') }}</p>
                                     </div>
                                 </label>
                             </div>
-                            <div class="col-md-6">
-                                <label class="service-type-card p-3 border rounded-3 d-flex align-items-center gap-3 cursor-pointer w-100 position-relative h-100" id="card_general">
-                                    <input type="radio" name="module_type" value="general" class="form-check-input mt-0 position-absolute" style="top: 16px; right: 16px;">
-                                    <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px;">
-                                        <span class="material-icons fs-28">build</span>
+                            <div class="col-md-4">
+                                <label class="service-type-card p-3 border rounded-3 d-flex align-items-center gap-3 cursor-pointer w-100 position-relative h-100" id="card_chauffeur">
+                                    <input type="radio" name="module_type" value="chauffeur" class="form-check-input mt-0 position-absolute" style="top: 16px; right: 16px;">
+                                    <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                                        <span class="material-icons fs-26">person_pin</span>
                                     </div>
                                     <div>
-                                        <h5 class="fw-bold mb-1 text-dark">{{ translate('Automotive & Garage Repair Services') }}</h5>
-                                        <p class="fz-12 text-muted mb-0">{{ translate('Quotes for vehicle repairs, bodywork, tyres, MOT, diagnostics, and maintenance.') }}</p>
+                                        <h5 class="fw-bold mb-1 text-dark fz-15">{{ translate('Chauffeur Service') }}</h5>
+                                        <p class="fz-12 text-muted mb-0">{{ translate('Professional driver ride with luxury fleet.') }}</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="service-type-card p-3 border rounded-3 d-flex align-items-center gap-3 cursor-pointer w-100 position-relative h-100" id="card_general">
+                                    <input type="radio" name="module_type" value="general" class="form-check-input mt-0 position-absolute" style="top: 16px; right: 16px;">
+                                    <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                                        <span class="material-icons fs-26">build</span>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-1 text-dark fz-15">{{ translate('Garage & Repairs') }}</h5>
+                                        <p class="fz-12 text-muted mb-0">{{ translate('Vehicle repairs, bodywork, tyres & servicing.') }}</p>
                                     </div>
                                 </label>
                             </div>
@@ -151,43 +163,68 @@
                         <div id="section_car_hire" class="card border-0 shadow-sm mb-4">
                             <div class="card-header bg-transparent border-bottom py-3 d-flex justify-content-between align-items-center">
                                 <h4 class="card-title mb-0 d-flex align-items-center gap-2 fz-16">
-                                    <span class="material-icons text-primary">directions_car</span>
-                                    {{ translate('Select Fleet Car & Rental Details') }}
+                                    <span class="material-icons text-primary" id="fleet_section_icon">directions_car</span>
+                                    <span id="fleet_section_title">{{ translate('Select Fleet Car & Rental Details') }}</span>
                                 </h4>
-                                <a href="{{ route('provider.car.index') }}" target="_blank" class="fz-12 text-primary text-decoration-none">
+                                <a href="{{ route('provider.car.index') }}" target="_blank" class="fz-12 text-primary text-decoration-none" id="manage_fleet_link">
                                     <span class="material-icons fz-14 align-middle">open_in_new</span>
                                     {{ translate('Manage Fleet Cars') }}
                                 </a>
                             </div>
                             <div class="card-body p-4">
-                                @if($cars->isEmpty())
-                                    <div class="alert alert-warning d-flex align-items-center justify-content-between p-3 rounded-3 mb-3">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="material-icons text-warning">warning</span>
-                                            <div class="fz-13">
-                                                <strong>{{ translate('No Fleet Cars Found!') }}</strong><br>
-                                                {{ translate('You have not added any cars to your fleet yet. Please add cars in Car Management first.') }}
-                                            </div>
+                                {{-- Alert if no Car Hire fleet --}}
+                                <div id="alert_no_car_hire" class="alert alert-warning d-flex align-items-center justify-content-between p-3 rounded-3 mb-3" style="{{ ($carHireCount ?? 0) > 0 ? 'display: none !important;' : '' }}">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="material-icons text-warning">warning</span>
+                                        <div class="fz-13">
+                                            <strong>{{ translate('No Car Hire Fleet Found!') }}</strong><br>
+                                            {{ translate('You have not added any vehicles for Self-Drive Car Hire yet.') }}
                                         </div>
-                                        <a href="{{ route('provider.car.create') }}" class="btn btn-sm btn-warning text-dark fw-semibold text-nowrap">
-                                            {{ translate('Add Fleet Car') }}
-                                        </a>
                                     </div>
-                                @endif
+                                    <a href="{{ route('provider.car.create-car-hire') }}" class="btn btn-sm btn-warning text-dark fw-semibold text-nowrap">
+                                        {{ translate('Add Car Hire Vehicle') }}
+                                    </a>
+                                </div>
+
+                                {{-- Alert if no Chauffeur fleet --}}
+                                <div id="alert_no_chauffeur" class="alert alert-warning d-flex align-items-center justify-content-between p-3 rounded-3 mb-3" style="display: none !important;">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="material-icons text-warning">warning</span>
+                                        <div class="fz-13">
+                                            <strong>{{ translate('No Chauffeur Fleet Found!') }}</strong><br>
+                                            {{ translate('You have not added any vehicles for Chauffeur Service yet.') }}
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('provider.car.create-chauffeur') }}" class="btn btn-sm btn-warning text-dark fw-semibold text-nowrap">
+                                        {{ translate('Add Chauffeur Vehicle') }}
+                                    </a>
+                                </div>
 
                                 <div class="row g-3">
                                     {{-- Car Select --}}
                                     <div class="col-12">
-                                        <label class="form-label required-field fw-medium">{{ translate('Select_Vehicle_From_Your_Fleet') }}</label>
+                                        <label class="form-label required-field fw-medium" id="car_select_label">{{ translate('Select_Vehicle_From_Your_Fleet') }}</label>
                                         <select class="form-select" name="car_id" id="car_id">
-                                            <option value="">{{ translate('-- Choose a Fleet Car --') }}</option>
+                                            <option value="">{{ translate('-- Choose a Vehicle --') }}</option>
                                             @foreach($cars as $car)
-                                                @php
+                                                <?php
                                                     $daily = floatval($car->daily_rate ?? $car->daily_rent ?? 0);
                                                     $hourly = floatval($car->hourly_rate ?? 0);
                                                     $delFee = floatval($car->delivery_fee ?? 0);
+                                                    $secDeposit = floatval($car->security_deposit ?? 0);
                                                     $minH = intval($car->min_booking_hours ?? 1);
-                                                @endphp
+                                                    $isChauffeur = ($car->service_category === 'chauffeur');
+
+                                                    $rateLabels = [];
+                                                    if ($daily > 0) {
+                                                        $rateLabels[] = with_currency_symbol($daily) . '/day';
+                                                    }
+                                                    if ($hourly > 0) {
+                                                        $rateLabels[] = with_currency_symbol($hourly) . '/hr' . ($minH > 1 ? ' (Min ' . $minH . 'h)' : '');
+                                                    }
+                                                    $ratesStr = !empty($rateLabels) ? implode(' | ', $rateLabels) : translate('Rate not set');
+                                                    $depositStr = (!$isChauffeur && $secDeposit > 0) ? ' | ' . translate('Deposit') . ': ' . with_currency_symbol($secDeposit) : '';
+                                                ?>
                                                 <option value="{{ $car->id }}"
                                                         data-brand="{{ $car->brand }}"
                                                         data-model="{{ $car->model }}"
@@ -197,48 +234,91 @@
                                                         data-daily="{{ $daily }}"
                                                         data-hourly="{{ $hourly }}"
                                                         data-delivery-fee="{{ $delFee }}"
+                                                        data-security-deposit="{{ $secDeposit }}"
                                                         data-min-hours="{{ $minH }}"
-                                                        data-service-cat="{{ $car->service_category }}">
-                                                    @if($car->service_category === 'chauffeur')
-                                                        [Chauffeur] {{ $car->brand }} {{ $car->model }} - {{ with_currency_symbol($hourly) }}/hr (Min {{ $minH }}h)
-                                                    @else
-                                                        [Car Hire] {{ $car->brand }} {{ $car->model }} - {{ with_currency_symbol($daily) }}/day 
-                                                    @endif
-                                                    [{{ $car->registration_number ?? 'No Reg' }}]
+                                                        data-service-cat="{{ $car->service_category ?? 'car_hire' }}">
+                                                    {{ $car->brand }} {{ $car->model }} ({{ $car->year }}) - {{ $ratesStr }}{{ $depositStr }} [{{ $car->registration_number ?? 'No Reg' }}]
                                                 </option>
                                             @endforeach
                                         </select>
                                     </div>
 
-                                    {{-- Pickup Type --}}
-                                    <div class="col-12">
-                                        <label class="form-label required-field fw-medium">{{ translate('Pickup / Service Type') }}</label>
+                                    {{-- Pickup Type (Car Hire only) --}}
+                                    <div class="col-12" id="pickup_type_wrapper">
+                                        <label class="form-label required-field fw-medium">{{ translate('Pickup / Delivery Mode') }}</label>
                                         <select class="form-select" name="pickup_type" id="pickup_type">
                                             <option value="self">{{ translate('Self-Drive (Customer Pick up from garage)') }}</option>
                                             <option value="delivery">{{ translate('Doorstep Delivery (Deliver car to customer address)') }}</option>
-                                            <option value="chauffeur">{{ translate('Chauffeur Service (With Professional Driver)') }}</option>
                                         </select>
                                     </div>
 
-                                    {{-- Rental Period --}}
+                                    {{-- Chauffeur Service Badge / Info --}}
+                                    <div class="col-12" id="chauffeur_badge_wrapper" style="display: none;">
+                                        <div class="p-3 rounded-3 bg-warning-subtle border border-warning-subtle d-flex align-items-center gap-3">
+                                            <span class="material-icons text-warning fs-28">person_pin</span>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-dark">{{ translate('Dedicated Chauffeur Driver Service') }}</h6>
+                                                <p class="mb-0 fz-12 text-muted">{{ translate('Professional chauffeur driver with personalized pickup & drop-off locations.') }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Pricing Type Selector (Daily vs Hourly) --}}
+                                    <div class="col-12" id="pricing_type_wrapper">
+                                        <label class="form-label required-field fw-medium mb-2 d-flex justify-content-between align-items-center">
+                                            <span>{{ translate('Select Billing Mode (Daily / Hourly)') }}</span>
+                                            <span id="car_rate_summary_badge" class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fz-11" style="display: none;"></span>
+                                        </label>
+                                        <div class="row g-3" id="pricing_type_cards_container">
+                                            <div class="col-sm-6">
+                                                <div class="pricing-pill-card p-3 rounded-3 d-flex align-items-center gap-3 cursor-pointer w-100 position-relative h-100 active" id="pill_pricing_daily" data-pricing-type="daily">
+                                                    <input type="radio" name="pricing_type" id="pricing_type_daily" value="daily" class="visually-hidden-input" checked>
+                                                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                                                        <span class="material-icons fs-22">calendar_month</span>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <div class="fw-bold text-dark fz-14 mb-0">{{ translate('Daily Rate') }}</div>
+                                                        <div class="fz-12 text-primary fw-semibold" id="lbl_daily_rate_val">{{ translate('Select car to view rate') }}</div>
+                                                    </div>
+                                                    <span class="material-icons text-primary check-indicator" style="font-size: 20px;">check_circle</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <div class="pricing-pill-card p-3 rounded-3 d-flex align-items-center gap-3 cursor-pointer w-100 position-relative h-100" id="pill_pricing_hourly" data-pricing-type="hourly">
+                                                    <input type="radio" name="pricing_type" id="pricing_type_hourly" value="hourly" class="visually-hidden-input">
+                                                    <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                                                        <span class="material-icons fs-22">schedule</span>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <div class="fw-bold text-dark fz-14 mb-0">{{ translate('Hourly Rate') }}</div>
+                                                        <div class="fz-12 text-warning fw-semibold" id="lbl_hourly_rate_val">{{ translate('Select car to view rate') }}</div>
+                                                    </div>
+                                                    <span class="material-icons text-primary check-indicator" style="font-size: 20px;">check_circle</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Rental Period / Trip Dates --}}
                                     <div class="col-sm-6">
-                                        <label class="form-label required-field fw-medium">{{ translate('Start_Date') }}</label>
+                                        <label class="form-label required-field fw-medium" id="lbl_start_date">{{ translate('Start_Date') }}</label>
                                         <input type="date" name="start_date" id="start_date" class="form-control" 
                                                value="{{ date('Y-m-d') }}">
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label required-field fw-medium">{{ translate('Pickup_Time') }}</label>
+                                        <label class="form-label required-field fw-medium" id="lbl_pickup_time">{{ translate('Pickup_Time') }}</label>
                                         <input type="text" name="pickup_time" id="pickup_time" class="form-control" 
                                                value="10:00 AM" placeholder="10:00 AM">
                                     </div>
 
                                     <div class="col-sm-6">
-                                        <label class="form-label required-field fw-medium">{{ translate('End_Date') }}</label>
+                                        <label class="form-label required-field fw-medium" id="lbl_end_date">{{ translate('End_Date') }}</label>
                                         <input type="date" name="end_date" id="end_date" class="form-control" 
                                                value="{{ date('Y-m-d', strtotime('+1 day')) }}">
                                     </div>
                                     <div class="col-sm-6">
-                                        <label class="form-label required-field fw-medium">{{ translate('Drop_Time') }}</label>
+                                        <label class="form-label required-field fw-medium" id="lbl_drop_time">{{ translate('Drop_Time') }}</label>
                                         <input type="text" name="drop_time" id="drop_time" class="form-control" 
                                                value="10:00 AM" placeholder="10:00 AM">
                                     </div>
@@ -255,7 +335,7 @@
                                                placeholder="{{ translate('e.g. Heathrow Airport or Downtown Convention Center') }}">
                                     </div>
 
-                                    {{-- Delivery Specific Field --}}
+                                    {{-- Delivery Specific Field (Car Hire) --}}
                                     <div class="col-12 delivery-field" style="display: none;">
                                         <label class="form-label required-field fw-medium">{{ translate('Delivery_Address for Vehicle Drop-off') }}</label>
                                         <input type="text" name="delivery_address" id="delivery_address" class="form-control" 
@@ -378,6 +458,40 @@
                                         </div>
                                     </div>
 
+                                    {{-- Hidden Pricing Breakdown Inputs for Backend Persistence --}}
+                                    <input type="hidden" name="rent_amount" id="input_rent_amount" value="{{ old('rent_amount', 0) }}">
+                                    <input type="hidden" name="delivery_fee" id="input_delivery_fee" value="{{ old('delivery_fee', 0) }}">
+                                    <input type="hidden" name="security_deposit" id="input_security_deposit" value="{{ old('security_deposit', 0) }}">
+
+                                    {{-- Car Hire / Chauffeur Pricing Breakdown Card --}}
+                                    <div class="col-12" id="car_pricing_breakdown_wrapper" style="display: none;">
+                                        <div class="p-3 rounded-3 bg-light border">
+                                            <div class="fw-bold text-dark fz-13 mb-2 d-flex align-items-center gap-1">
+                                                <span class="material-icons text-primary fs-16">receipt</span>
+                                                {{ translate('Pricing Breakdown') }}
+                                            </div>
+                                            <div class="d-flex justify-content-between fz-13 py-1 border-bottom">
+                                                <span class="text-muted">{{ translate('Base Rental Amount') }}:</span>
+                                                <span class="fw-semibold text-dark" id="breakdown_rent_amount">{{ currency_symbol() }}0.00</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between fz-13 py-1 border-bottom" id="breakdown_delivery_row" style="display: none;">
+                                                <span class="text-muted">{{ translate('Doorstep Delivery Fee') }}:</span>
+                                                <span class="fw-semibold text-dark" id="breakdown_delivery_fee">{{ currency_symbol() }}0.00</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between fz-13 py-1 border-bottom" id="breakdown_deposit_row" style="display: none;">
+                                                <span class="text-muted d-flex align-items-center gap-1">
+                                                    {{ translate('Refundable Security Deposit') }}:
+                                                    <span class="badge bg-info-subtle text-info border border-info-subtle fz-10">{{ translate('Refundable') }}</span>
+                                                </span>
+                                                <span class="fw-bold text-primary" id="breakdown_security_deposit">{{ currency_symbol() }}0.00</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between fz-14 pt-2">
+                                                <span class="fw-bold text-dark">{{ translate('Total Quoted Price') }}:</span>
+                                                <span class="fw-bold text-primary fs-16" id="breakdown_total_amount">{{ currency_symbol() }}0.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {{-- Quoted Price --}}
                                     <div class="col-12">
                                         <label class="form-label required-field fw-medium" id="price_label">
@@ -487,31 +601,165 @@
             border: 0 !important;
             opacity: 0 !important;
         }
+        .pricing-pill-card {
+            border: 2px solid #E2E8F0 !important;
+            transition: all 0.2s ease;
+            background: #fff;
+            user-select: none;
+            cursor: pointer;
+        }
+        .pricing-pill-card:hover {
+            border-color: #0461A5 !important;
+            background: #F8FAFC;
+        }
+        .pricing-pill-card.active {
+            border-color: #0461A5 !important;
+            background: #F0F7FF !important;
+            box-shadow: 0 2px 8px rgba(4, 97, 165, 0.18) !important;
+        }
+        .pricing-pill-card.disabled {
+            opacity: 0.45;
+            cursor: not-allowed !important;
+            pointer-events: none;
+            background: #F8FAFC !important;
+            border-color: #E2E8F0 !important;
+        }
+        .pricing-pill-card .check-indicator {
+            display: none;
+        }
+        .pricing-pill-card.active .check-indicator {
+            display: block !important;
+        }
     </style>
 
     <script>
         $(document).ready(function() {
-            // Toggle between Car Hire / Chauffeur vs Garage Service
+            // Filter vehicle dropdown options by module type ('car_hire' vs 'chauffeur')
+            function filterFleetCars(category) {
+                let $carSelect = $('#car_id');
+                let count = 0;
+                let currentVal = $carSelect.val();
+                let currentSelectedBelongs = false;
+
+                $carSelect.find('option').each(function() {
+                    let optVal = $(this).val();
+                    if (!optVal) {
+                        $(this).show();
+                        return;
+                    }
+                    let cat = $(this).data('service-cat') || 'car_hire';
+                    if (cat === category) {
+                        $(this).show();
+                        count++;
+                        if (optVal === currentVal) {
+                            currentSelectedBelongs = true;
+                        }
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                if (!currentSelectedBelongs) {
+                    $carSelect.val('');
+                }
+
+                // Show/hide empty alerts
+                if (category === 'car_hire') {
+                    if (count === 0) {
+                        $('#alert_no_car_hire').show();
+                    } else {
+                        $('#alert_no_car_hire').hide();
+                    }
+                    $('#alert_no_chauffeur').hide();
+                } else if (category === 'chauffeur') {
+                    if (count === 0) {
+                        $('#alert_no_chauffeur').show();
+                    } else {
+                        $('#alert_no_chauffeur').hide();
+                    }
+                    $('#alert_no_car_hire').hide();
+                }
+            }
+
+            // Toggle between Car Hire vs Chauffeur vs Garage Service
             function updateModuleView() {
                 let moduleType = $('input[name="module_type"]:checked').val();
 
                 $('.service-type-card').removeClass('active-type');
+
                 if (moduleType === 'car_hire') {
                     $('#card_car_hire').addClass('active-type');
                     $('#section_car_hire').show();
                     $('#section_garage_service').hide();
                     $('#section_customer_vehicle').hide();
+                    $('#fleet_section_icon').text('directions_car');
+                    $('#fleet_section_title').text('{{ translate("Select Car Hire Fleet & Rental Details") }}');
+                    $('#manage_fleet_link').attr('href', '{{ route("provider.car.index") }}?service_category=car_hire');
+                    $('#car_select_label').text('{{ translate("Select Car Hire Vehicle") }}');
+                    $('#lbl_start_date').text('{{ translate("Rental Start Date") }}');
+                    $('#lbl_pickup_time').text('{{ translate("Pickup Time") }}');
+                    $('#lbl_end_date').text('{{ translate("Rental End Date") }}');
+                    $('#lbl_drop_time').text('{{ translate("Return / Drop Time") }}');
+
+                    $('#pickup_type_wrapper').show();
+                    $('#chauffeur_badge_wrapper').hide();
+
+                    if ($('#pickup_type').val() === 'chauffeur') {
+                        $('#pickup_type').val('self');
+                    }
+
+                    $('.chauffeur-field').hide();
+                    $('#pickup_location, #drop_location').prop('required', false);
+
                     $('#car_id').prop('required', true);
                     $('#service_id').prop('required', false);
                     $('#service_schedule').prop('required', false);
+
+                    filterFleetCars('car_hire');
                     updateCarPickupFields();
+                    calculateCarRate();
+                } else if (moduleType === 'chauffeur') {
+                    $('#card_chauffeur').addClass('active-type');
+                    $('#section_car_hire').show();
+                    $('#section_garage_service').hide();
+                    $('#section_customer_vehicle').hide();
+                    $('#fleet_section_icon').text('person_pin');
+                    $('#fleet_section_title').text('{{ translate("Select Chauffeur Fleet & Trip Details") }}');
+                    $('#manage_fleet_link').attr('href', '{{ route("provider.car.index") }}?service_category=chauffeur');
+                    $('#car_select_label').text('{{ translate("Select Chauffeur Vehicle") }}');
+                    $('#lbl_start_date').text('{{ translate("Service / Trip Date") }}');
+                    $('#lbl_pickup_time').text('{{ translate("Pickup Time") }}');
+                    $('#lbl_end_date').text('{{ translate("Trip End Date") }}');
+                    $('#lbl_drop_time').text('{{ translate("Drop / Return Time") }}');
+
+                    $('#pickup_type_wrapper').hide();
+                    $('#chauffeur_badge_wrapper').show();
+
+                    // Chauffeur pickup type
+                    $('#pickup_type').val('chauffeur');
+
+                    $('.chauffeur-field').show();
+                    $('.delivery-field').hide();
+                    $('#pickup_location, #drop_location').prop('required', true);
+                    $('#delivery_address').prop('required', false);
+
+                    $('#car_id').prop('required', true);
+                    $('#service_id').prop('required', false);
+                    $('#service_schedule').prop('required', false);
+
+                    filterFleetCars('chauffeur');
                     calculateCarRate();
                 } else {
                     $('#card_general').addClass('active-type');
                     $('#section_car_hire').hide();
                     $('#section_garage_service').show();
                     $('#section_customer_vehicle').show();
+                    $('#car_pricing_breakdown_wrapper').hide();
+                    $('#input_rent_amount').val('0.00');
+                    $('#input_delivery_fee').val('0.00');
+                    $('#input_security_deposit').val('0.00');
                     $('#car_id').prop('required', false);
+                    $('#pickup_location, #drop_location, #delivery_address').prop('required', false);
                     $('#service_id').prop('required', true);
                     $('#service_schedule').prop('required', true);
                     handleServiceChange();
@@ -520,15 +768,19 @@
 
             $('input[name="module_type"]').on('change', updateModuleView);
 
-            // Pickup Type changer for Car Hire / Chauffeur
+            // Pickup Type changer for Car Hire (self vs delivery)
             function updateCarPickupFields() {
-                let pickupType = $('#pickup_type').val();
-                if (pickupType === 'chauffeur') {
+                let moduleType = $('input[name="module_type"]:checked').val();
+                if (moduleType === 'chauffeur') {
                     $('.chauffeur-field').show();
                     $('.delivery-field').hide();
                     $('#pickup_location, #drop_location').prop('required', true);
                     $('#delivery_address').prop('required', false);
-                } else if (pickupType === 'delivery') {
+                    return;
+                }
+
+                let pickupType = $('#pickup_type').val();
+                if (pickupType === 'delivery') {
                     $('.chauffeur-field').hide();
                     $('.delivery-field').show();
                     $('#pickup_location, #drop_location').prop('required', false);
@@ -545,65 +797,249 @@
                 calculateCarRate();
             });
 
-            // Car auto-calculation
+            // Parse time string e.g. "10:00 AM" or "14:30" to minutes from midnight
+            function parseTimeToMinutes(timeStr) {
+                if (!timeStr) return 0;
+                let trimmed = $.trim(timeStr).toUpperCase();
+                let match = trimmed.match(/(\d+):(\d+)\s*(AM|PM)?/);
+                if (!match) return 0;
+                let hours = parseInt(match[1]);
+                let minutes = parseInt(match[2]);
+                let ampm = match[3];
+                if (ampm === 'PM' && hours < 12) hours += 12;
+                if (ampm === 'AM' && hours === 12) hours = 0;
+                return (hours * 60) + minutes;
+            }
+
+            // Click handler for pricing pill cards (Daily vs Hourly)
+            $(document).on('click', '.pricing-pill-card', function(e) {
+                if ($(this).hasClass('disabled')) {
+                    e.preventDefault();
+                    return false;
+                }
+                let pType = $(this).data('pricing-type');
+                $('.pricing-pill-card').removeClass('active');
+                $(this).addClass('active');
+                $('input[name="pricing_type"][value="' + pType + '"]').prop('checked', true);
+                calculateCarRate();
+            });
+
+            $(document).on('change', 'input[name="pricing_type"]', function() {
+                let pType = $(this).val();
+                $('.pricing-pill-card').removeClass('active');
+                if (pType === 'daily') {
+                    $('#pill_pricing_daily').addClass('active');
+                } else if (pType === 'hourly') {
+                    $('#pill_pricing_hourly').addClass('active');
+                }
+                calculateCarRate();
+            });
+
+            // Auto-calculate rates for Car Hire and Chauffeur based on pricing_type (matching API logic)
             function calculateCarRate() {
-                if ($('input[name="module_type"]:checked').val() !== 'car_hire') return;
+                let moduleType = $('input[name="module_type"]:checked').val();
+                if (moduleType !== 'car_hire' && moduleType !== 'chauffeur') {
+                    $('#car_pricing_breakdown_wrapper').hide();
+                    return;
+                }
 
                 let opt = $('#car_id').find(':selected');
                 if (!opt.val()) {
                     $('#service_info_badge').hide();
+                    $('#car_pricing_breakdown_wrapper').hide();
+                    $('#lbl_daily_rate_val').text('{{ translate("Select vehicle to view rate") }}');
+                    $('#lbl_hourly_rate_val').text('{{ translate("Select vehicle to view rate") }}');
+                    $('#car_rate_summary_badge').hide();
+                    $('#pill_pricing_daily, #pill_pricing_hourly').removeClass('disabled');
+                    $('#pricing_type_daily, #pricing_type_hourly').prop('disabled', false);
+                    $('#input_rent_amount').val('0.00');
+                    $('#input_delivery_fee').val('0.00');
+                    $('#input_security_deposit').val('0.00');
                     return;
-                }
-
-                let serviceCat = opt.data('service-cat') || 'car_hire';
-                let pickupType = $('#pickup_type').val();
-
-                // Auto-switch pickup type if car is specifically chauffeur
-                if (serviceCat === 'chauffeur' && pickupType !== 'chauffeur') {
-                    $('#pickup_type').val('chauffeur');
-                    updateCarPickupFields();
-                    pickupType = 'chauffeur';
                 }
 
                 let daily = parseFloat(opt.data('daily')) || 0;
                 let hourly = parseFloat(opt.data('hourly')) || 0;
                 let deliveryFee = parseFloat(opt.data('delivery-fee')) || 0;
+                let securityDeposit = parseFloat(opt.data('security-deposit')) || 0;
                 let minHours = parseInt(opt.data('min-hours')) || 1;
+                let brandModel = (opt.data('brand') || '') + ' ' + (opt.data('model') || '');
+
+                let hasDaily = (daily > 0);
+                let hasHourly = (hourly > 0);
+
+                // Update Daily card
+                if (hasDaily) {
+                    $('#lbl_daily_rate_val').text('{{ currency_symbol() }}' + daily.toFixed(2) + ' / day');
+                    $('#pill_pricing_daily').removeClass('disabled');
+                    $('#pricing_type_daily').prop('disabled', false);
+                } else {
+                    $('#lbl_daily_rate_val').text('{{ translate("Not available for this vehicle") }}');
+                    $('#pill_pricing_daily').addClass('disabled');
+                    $('#pricing_type_daily').prop('disabled', true);
+                }
+
+                // Update Hourly card
+                if (hasHourly) {
+                    let hText = '{{ currency_symbol() }}' + hourly.toFixed(2) + ' / hr';
+                    if (minHours > 1) {
+                        hText += ' (Min ' + minHours + 'h)';
+                    }
+                    $('#lbl_hourly_rate_val').text(hText);
+                    $('#pill_pricing_hourly').removeClass('disabled');
+                    $('#pricing_type_hourly').prop('disabled', false);
+                } else {
+                    $('#lbl_hourly_rate_val').text('{{ translate("Not available for this vehicle") }}');
+                    $('#pill_pricing_hourly').addClass('disabled');
+                    $('#pricing_type_hourly').prop('disabled', true);
+                }
+
+                // Badge showing rate availability
+                if (hasDaily && hasHourly) {
+                    $('#car_rate_summary_badge').text('{{ translate("Daily & Hourly Available") }}')
+                        .removeClass('bg-warning-subtle text-warning bg-primary-subtle text-primary')
+                        .addClass('bg-success-subtle text-success').show();
+                } else if (hasDaily) {
+                    $('#car_rate_summary_badge').text('{{ translate("Daily Only") }}')
+                        .removeClass('bg-success-subtle text-success bg-warning-subtle text-warning')
+                        .addClass('bg-primary-subtle text-primary').show();
+                } else if (hasHourly) {
+                    $('#car_rate_summary_badge').text('{{ translate("Hourly Only") }}')
+                        .removeClass('bg-success-subtle text-success bg-primary-subtle text-primary')
+                        .addClass('bg-warning-subtle text-warning').show();
+                } else {
+                    $('#car_rate_summary_badge').hide();
+                }
+
+                // Auto-select valid option if current selection is disabled
+                let activePricing = $('input[name="pricing_type"]:checked').val();
+                if (!activePricing || (activePricing === 'daily' && !hasDaily) || (activePricing === 'hourly' && !hasHourly)) {
+                    if (hasDaily && !hasHourly) {
+                        activePricing = 'daily';
+                    } else if (hasHourly && !hasDaily) {
+                        activePricing = 'hourly';
+                    } else if (hasDaily) {
+                        activePricing = 'daily';
+                    }
+                    $('input[name="pricing_type"][value="' + activePricing + '"]').prop('checked', true);
+                }
+
+                // Match visual .active class
+                $('.pricing-pill-card').removeClass('active');
+                if (activePricing === 'daily') {
+                    $('#pill_pricing_daily').addClass('active');
+                } else if (activePricing === 'hourly') {
+                    $('#pill_pricing_hourly').addClass('active');
+                }
 
                 let sDate = $('#start_date').val();
                 let eDate = $('#end_date').val();
+                let pTime = $('#pickup_time').val() || '10:00 AM';
+                let dTime = $('#drop_time').val() || '10:00 AM';
 
                 if (sDate && eDate) {
                     let d1 = new Date(sDate);
                     let d2 = new Date(eDate);
-                    let diffTime = Math.abs(d2 - d1);
-                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    let diffDays = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24));
                     if (diffDays === 0) diffDays = 1;
 
-                    let total = 0;
+                    let pTimeMin = parseTimeToMinutes(pTime);
+                    let dTimeMin = parseTimeToMinutes(dTime);
+                    let diffMinutes = (diffDays > 1 ? (diffDays - 1) * 24 * 60 : 0) + (dTimeMin - pTimeMin);
+                    let totalHours = Math.max(1, Math.ceil(diffMinutes / 60));
+                    let days = Math.max(1, (diffDays > 0 && totalHours >= 24) ? Math.ceil(totalHours / 24) : diffDays);
+
+                    let baseRent = 0;
+                    let effectiveDelFee = 0;
+                    let effectiveSecDeposit = 0;
+                    let totalQuoteAmount = 0;
                     let infoMsg = '';
 
-                    if (pickupType === 'chauffeur') {
-                        // Chauffeur: Bill by hours or daily
-                        let billedHours = minHours;
-                        total = billedHours * hourly;
-                        if (diffDays > 1 && daily > 0) {
-                            total = diffDays * daily;
+                    if (moduleType === 'chauffeur') {
+                        let billedHours = Math.max(totalHours, minHours);
+
+                        if (activePricing === 'hourly' && hourly > 0) {
+                            baseRent = billedHours * hourly;
+                            infoMsg = "<strong>Chauffeur (Hourly Rate):</strong> " + brandModel + " ({{ currency_symbol() }}" + hourly.toFixed(2) + "/hr × " + billedHours + " hrs" + (minHours > 1 ? ", Min " + minHours + "h" : "") + ") - Total: <strong>{{ currency_symbol() }}" + baseRent.toFixed(2) + "</strong>";
+                        } else if (activePricing === 'daily' && daily > 0) {
+                            baseRent = days * daily;
+                            infoMsg = "<strong>Chauffeur (Daily Rate):</strong> " + brandModel + " ({{ currency_symbol() }}" + daily.toFixed(2) + "/day × " + days + " " + (days > 1 ? "days" : "day") + ") - Total: <strong>{{ currency_symbol() }}" + baseRent.toFixed(2) + "</strong>";
+                        } else if (hourly > 0) {
+                            baseRent = billedHours * hourly;
+                            infoMsg = "<strong>Chauffeur (Hourly Rate):</strong> " + brandModel + " ({{ currency_symbol() }}" + hourly.toFixed(2) + "/hr × " + billedHours + " hrs) - Total: <strong>{{ currency_symbol() }}" + baseRent.toFixed(2) + "</strong>";
+                        } else if (daily > 0) {
+                            baseRent = days * daily;
+                            infoMsg = "<strong>Chauffeur (Daily Rate):</strong> " + brandModel + " ({{ currency_symbol() }}" + daily.toFixed(2) + "/day × " + days + " days) - Total: <strong>{{ currency_symbol() }}" + baseRent.toFixed(2) + "</strong>";
                         }
-                        infoMsg = "<strong>{{ translate('Chauffeur Rate') }}:</strong> " + opt.data('brand') + " " + opt.data('model') + " ({{ currency_symbol() }}" + hourly + "/hr, Min " + minHours + "h) - Total: <strong>{{ currency_symbol() }}" + total.toFixed(2) + "</strong>";
+
+                        totalQuoteAmount = baseRent;
+
+                        $('#input_rent_amount').val(baseRent.toFixed(2));
+                        $('#input_delivery_fee').val('0.00');
+                        $('#input_security_deposit').val('0.00');
+
+                        $('#breakdown_rent_amount').text('{{ currency_symbol() }}' + baseRent.toFixed(2));
+                        $('#breakdown_delivery_row').hide();
+                        $('#breakdown_deposit_row').hide();
+                        $('#breakdown_total_amount').text('{{ currency_symbol() }}' + baseRent.toFixed(2));
+                        $('#car_pricing_breakdown_wrapper').show();
                     } else {
-                        // Car Hire: Daily rate
-                        total = diffDays * daily;
-                        if (pickupType === 'delivery' && deliveryFee > 0) {
-                            total += deliveryFee;
-                            infoMsg = "<strong>{{ translate('Car Hire') }}:</strong> " + opt.data('brand') + " " + opt.data('model') + " ({{ currency_symbol() }}" + daily + "/day × " + diffDays + " days + {{ currency_symbol() }}" + deliveryFee + " Delivery) - Total: <strong>{{ currency_symbol() }}" + total.toFixed(2) + "</strong>";
-                        } else {
-                            infoMsg = "<strong>{{ translate('Car Hire') }}:</strong> " + opt.data('brand') + " " + opt.data('model') + " ({{ currency_symbol() }}" + daily + "/day × " + diffDays + " days) - Total: <strong>{{ currency_symbol() }}" + total.toFixed(2) + "</strong>";
+                        // Car Hire (Self-Drive)
+                        let pickupType = $('#pickup_type').val();
+
+                        if (activePricing === 'hourly' && hourly > 0) {
+                            baseRent = totalHours * hourly;
+                            infoMsg = "<strong>Car Hire (Hourly Rate):</strong> " + brandModel + " ({{ currency_symbol() }}" + hourly.toFixed(2) + "/hr × " + totalHours + " " + (totalHours > 1 ? "hrs" : "hr") + ")";
+                        } else if (activePricing === 'daily' && daily > 0) {
+                            baseRent = days * daily;
+                            infoMsg = "<strong>Car Hire (Daily Rate):</strong> " + brandModel + " ({{ currency_symbol() }}" + daily.toFixed(2) + "/day × " + days + " " + (days > 1 ? "days" : "day") + ")";
+                        } else if (daily > 0) {
+                            baseRent = days * daily;
+                            infoMsg = "<strong>Car Hire (Daily Rate):</strong> " + brandModel + " ({{ currency_symbol() }}" + daily.toFixed(2) + "/day × " + days + " days)";
+                        } else if (hourly > 0) {
+                            baseRent = totalHours * hourly;
+                            infoMsg = "<strong>Car Hire (Hourly Rate):</strong> " + brandModel + " ({{ currency_symbol() }}" + hourly.toFixed(2) + "/hr × " + totalHours + " hrs)";
                         }
+
+                        if (pickupType === 'delivery' && deliveryFee > 0) {
+                            effectiveDelFee = deliveryFee;
+                            infoMsg += " + {{ currency_symbol() }}" + effectiveDelFee.toFixed(2) + " {{ translate('Delivery Fee') }}";
+                        }
+
+                        if (securityDeposit > 0) {
+                            effectiveSecDeposit = securityDeposit;
+                            infoMsg += " + {{ currency_symbol() }}" + effectiveSecDeposit.toFixed(2) + " <strong>({{ translate('Refundable Security Deposit') }})</strong>";
+                        }
+
+                        totalQuoteAmount = baseRent + effectiveDelFee + effectiveSecDeposit;
+                        infoMsg += " - Total: <strong>{{ currency_symbol() }}" + totalQuoteAmount.toFixed(2) + "</strong>";
+
+                        $('#input_rent_amount').val(baseRent.toFixed(2));
+                        $('#input_delivery_fee').val(effectiveDelFee.toFixed(2));
+                        $('#input_security_deposit').val(effectiveSecDeposit.toFixed(2));
+
+                        $('#breakdown_rent_amount').text('{{ currency_symbol() }}' + baseRent.toFixed(2));
+
+                        if (effectiveDelFee > 0) {
+                            $('#breakdown_delivery_fee').text('{{ currency_symbol() }}' + effectiveDelFee.toFixed(2));
+                            $('#breakdown_delivery_row').show();
+                        } else {
+                            $('#breakdown_delivery_row').hide();
+                        }
+
+                        if (effectiveSecDeposit > 0) {
+                            $('#breakdown_security_deposit').text('{{ currency_symbol() }}' + effectiveSecDeposit.toFixed(2));
+                            $('#breakdown_deposit_row').show();
+                        } else {
+                            $('#breakdown_deposit_row').hide();
+                        }
+
+                        $('#breakdown_total_amount').text('{{ currency_symbol() }}' + totalQuoteAmount.toFixed(2));
+                        $('#car_pricing_breakdown_wrapper').show();
                     }
 
-                    if (total > 0) {
-                        $('#service_price').val(total.toFixed(2));
+                    if (totalQuoteAmount > 0) {
+                        $('#service_price').val(totalQuoteAmount.toFixed(2));
                     }
 
                     $('#service_info_badge').show().removeClass('alert-warning').addClass('alert-info');
@@ -611,7 +1047,7 @@
                 }
             }
 
-            $('#car_id, #start_date, #end_date').on('change', calculateCarRate);
+            $('#car_id, #start_date, #end_date, #pickup_time, #drop_time').on('change input', calculateCarRate);
 
             // Existing customer autocomplete fill
             $('#existing_customer_select').on('change', function() {

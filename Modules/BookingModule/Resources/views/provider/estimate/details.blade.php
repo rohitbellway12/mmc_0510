@@ -167,6 +167,11 @@
                                             <td>
                                                 @if($isCarBooking)
                                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ ucfirst($estimate->pickup_type ?? 'Rental') }}</span>
+                                                    @if($estimate->pricing_type)
+                                                        <span class="badge {{ $estimate->pricing_type === 'hourly' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-info-subtle text-info border border-info-subtle' }} ms-1">
+                                                            {{ ucfirst($estimate->pricing_type) }} {{ translate('Rate') }}
+                                                        </span>
+                                                    @endif
                                                 @elseif($estimate->service_type == 'quotation_based')
                                                     <span class="badge bg-warning-subtle text-warning border border-warning-subtle">{{ translate('Quotation Based') }}</span>
                                                 @else
@@ -179,14 +184,38 @@
                                         </tr>
                                     </tbody>
                                     <tfoot>
-                                        <tr>
-                                            <td colspan="3" class="text-end fw-semibold">{{ translate('Subtotal') }}:</td>
-                                            <td class="text-end fw-semibold">{{ with_currency_symbol($estimate->price) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="3" class="text-end fw-semibold">{{ translate('Tax / VAT') }}:</td>
-                                            <td class="text-end">{{ with_currency_symbol($estimate->tax_amount) }}</td>
-                                        </tr>
+                                        @if($isCarBooking && (($estimate->security_deposit ?? 0) > 0 || ($estimate->delivery_fee ?? 0) > 0))
+                                            <tr>
+                                                <td colspan="3" class="text-end fw-semibold">{{ translate('Base Rental Fee') }}:</td>
+                                                <td class="text-end fw-semibold">{{ with_currency_symbol($estimate->rent_amount > 0 ? $estimate->rent_amount : ($estimate->price - ($estimate->delivery_fee ?? 0) - ($estimate->security_deposit ?? 0))) }}</td>
+                                            </tr>
+                                            @if(($estimate->delivery_fee ?? 0) > 0)
+                                                <tr>
+                                                    <td colspan="3" class="text-end fw-semibold">{{ translate('Doorstep Delivery Fee') }}:</td>
+                                                    <td class="text-end fw-semibold">{{ with_currency_symbol($estimate->delivery_fee) }}</td>
+                                                </tr>
+                                            @endif
+                                            @if(($estimate->security_deposit ?? 0) > 0)
+                                                <tr>
+                                                    <td colspan="3" class="text-end fw-semibold">
+                                                        {{ translate('Refundable Security Deposit') }}
+                                                        <span class="badge bg-info-subtle text-info border border-info-subtle ms-1 fz-10">{{ translate('Refundable') }}</span>:
+                                                    </td>
+                                                    <td class="text-end fw-bold text-info">{{ with_currency_symbol($estimate->security_deposit) }}</td>
+                                                </tr>
+                                            @endif
+                                        @else
+                                            <tr>
+                                                <td colspan="3" class="text-end fw-semibold">{{ translate('Subtotal') }}:</td>
+                                                <td class="text-end fw-semibold">{{ with_currency_symbol($estimate->price) }}</td>
+                                            </tr>
+                                        @endif
+                                        @if($estimate->tax_amount > 0)
+                                            <tr>
+                                                <td colspan="3" class="text-end fw-semibold">{{ translate('Tax / VAT') }}:</td>
+                                                <td class="text-end">{{ with_currency_symbol($estimate->tax_amount) }}</td>
+                                            </tr>
+                                        @endif
                                         <tr class="border-top">
                                             <td colspan="3" class="text-end fw-bold fs-16 text-dark">{{ translate('Total_Quoted_Amount') }}:</td>
                                             <td class="text-end fw-bold fs-18 text-primary">{{ with_currency_symbol($estimate->total_amount) }}</td>

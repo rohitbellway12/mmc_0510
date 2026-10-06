@@ -225,12 +225,31 @@ class BookingEstimateController extends Controller
             $estimate->pickup_location = $request->pickup_location;
             $estimate->drop_location = $request->drop_location;
             $estimate->delivery_address = $request->delivery_address;
+            $securityDeposit = ($moduleType === 'car_hire' && !empty($car->security_deposit)) ? floatval($car->security_deposit) : 0;
+            if ($request->filled('security_deposit')) {
+                $securityDeposit = floatval($request->security_deposit);
+            }
+
+            $deliveryFee = ($request->pickup_type === 'delivery' && !empty($car->delivery_fee)) ? floatval($car->delivery_fee) : 0;
+            if ($request->filled('delivery_fee')) {
+                $deliveryFee = floatval($request->delivery_fee);
+            }
+
+            $totalPrice = floatval($request->price);
+            $rentAmount = max(0, $totalPrice - $deliveryFee - $securityDeposit);
+            if ($request->filled('rent_amount') && floatval($request->rent_amount) > 0) {
+                $rentAmount = floatval($request->rent_amount);
+            }
+
             $estimate->service_schedule = \Carbon\Carbon::parse($request->start_date . ' ' . $request->pickup_time);
             $estimate->service_type = 'fixed_price';
-            $estimate->price = floatval($request->price);
+            $estimate->rent_amount = $rentAmount;
+            $estimate->delivery_fee = $deliveryFee;
+            $estimate->security_deposit = $securityDeposit;
+            $estimate->price = $totalPrice;
             $estimate->tax_amount = 0;
             $estimate->discount_amount = 0;
-            $estimate->total_amount = floatval($request->price);
+            $estimate->total_amount = $totalPrice;
             $estimate->notes = $request->notes;
             $estimate->status = 'pending';
             $estimate->expired_at = now()->addDays(7);

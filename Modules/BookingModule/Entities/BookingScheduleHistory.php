@@ -10,7 +10,7 @@ class BookingScheduleHistory extends Model
 {
     use HasFactory;
 
-    protected $fillable = [];
+    protected $fillable = ['booking_id', 'changed_by', 'schedule', 'booking_repeat_id'];
 
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo

@@ -82,6 +82,7 @@
     </div>
 </div>
 
+@push('script')
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         if (window.bookingIgnoreModalInitialized) return;
@@ -131,3 +132,4 @@
         });
     });
 </script>
+@endpush

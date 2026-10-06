@@ -607,6 +607,11 @@ class BookingEstimateController extends Controller
                     'contact_person_number' => $estimate->customer_phone ?: ($userAddress?->contact_person_number ?: null),
                     'lat' => $estimate->pickup_coordinates['latitude'] ?? ($estimate->delivery_latitude ?? ($userAddress?->lat ?? null)),
                     'lon' => $estimate->pickup_coordinates['longitude'] ?? ($estimate->delivery_longitude ?? ($userAddress?->lon ?? null)),
+                    'address_label' => $userAddress?->address_label ?? 'others',
+                    'city' => $userAddress?->city ?? null,
+                    'street' => $userAddress?->street ?? null,
+                    'zip_code' => $userAddress?->zip_code ?? null,
+                    'country' => $userAddress?->country ?? null,
                 ]);
             }
             $booking->save();

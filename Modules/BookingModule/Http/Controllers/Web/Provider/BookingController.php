@@ -256,12 +256,32 @@ class BookingController extends Controller
         if ($booking->service_address_location != null) {
             $decoded = json_decode($booking->service_address_location);
             if (is_object($decoded)) {
+                $dbAddress = (!empty($decoded->id)) ? $this->userAddress->find($decoded->id) : ($booking->service_address_id ? $this->userAddress->find($booking->service_address_id) : null);
+                $decoded->id = $decoded->id ?? $dbAddress?->id;
+                $decoded->address = $decoded->address ?? $dbAddress?->address ?? '';
+                $decoded->contact_person_name = $decoded->contact_person_name ?? $dbAddress?->contact_person_name ?? '';
+                $decoded->contact_person_number = $decoded->contact_person_number ?? $dbAddress?->contact_person_number ?? '';
+                $decoded->address_label = $decoded->address_label ?? $dbAddress?->address_label ?? '';
+                $decoded->lat = $decoded->lat ?? $dbAddress?->lat ?? '';
+                $decoded->lon = $decoded->lon ?? $dbAddress?->lon ?? '';
+                $decoded->city = $decoded->city ?? $dbAddress?->city ?? '';
+                $decoded->street = $decoded->street ?? $dbAddress?->street ?? '';
+                $decoded->zip_code = $decoded->zip_code ?? $dbAddress?->zip_code ?? '';
+                $decoded->country = $decoded->country ?? $dbAddress?->country ?? '';
                 $booking->service_address = $decoded;
             } elseif (is_string($booking->service_address_location) && !empty($booking->service_address_location)) {
                 $booking->service_address = (object)[
+                    'id' => null,
                     'address' => $booking->service_address_location,
-                    'contact_person_name' => $booking->customer ? ($booking->customer->first_name . ' ' . $booking->customer->last_name) : null,
-                    'contact_person_number' => $booking->customer?->phone,
+                    'contact_person_name' => $booking->customer ? ($booking->customer->first_name . ' ' . $booking->customer->last_name) : '',
+                    'contact_person_number' => $booking->customer?->phone ?? '',
+                    'address_label' => '',
+                    'lat' => '',
+                    'lon' => '',
+                    'city' => '',
+                    'street' => '',
+                    'zip_code' => '',
+                    'country' => '',
                 ];
             }
         }

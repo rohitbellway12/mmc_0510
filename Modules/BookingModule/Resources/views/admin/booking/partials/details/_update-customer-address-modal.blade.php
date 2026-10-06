@@ -17,7 +17,7 @@
                                     <div class="form-floating">
                                         <input type="text" class="form-control" name="contact_person_name"
                                                placeholder="{{translate('contact_person_name')}} *"
-                                               value="{{$booking->service_address?->contact_person_name}}" required>
+                                               value="{{$booking->service_address?->contact_person_name ?? ''}}" required>
                                         <label>{{translate('contact_person_name')}} *</label>
                                     </div>
                                 </div>
@@ -29,7 +29,7 @@
                                                name="contact_person_number"
                                                id="contact_person_number"
                                                placeholder="{{translate('contact_person_number')}} *"
-                                               value="{{$booking->service_address?->contact_person_number}}" required>
+                                               value="{{$booking->service_address?->contact_person_number ?? ''}}" required>
                                     </div>
                                 </div>
                             </div>
@@ -51,9 +51,9 @@
                                 <div class="mb-30">
                                     <select class="js-select theme-input-style w-100" name="address_label">
                                         <option selected disabled>{{translate('Select_address_label')}}*</option>
-                                        <option value="home" {{$booking->service_address?->address_label == 'home' ? 'selected' : ''}}>{{translate('Home')}}</option>
-                                        <option value="office" {{$booking->service_address?->address_label == 'office' ? 'selected' : ''}}>{{translate('Office')}}</option>
-                                        <option value="others" {{$booking->service_address?->address_label == 'others' ? 'selected' : ''}}>{{translate('others')}}</option>
+                                        <option value="home" {{($booking->service_address?->address_label ?? '') == 'home' ? 'selected' : ''}}>{{translate('Home')}}</option>
+                                        <option value="office" {{($booking->service_address?->address_label ?? '') == 'office' ? 'selected' : ''}}>{{translate('Office')}}</option>
+                                        <option value="others" {{($booking->service_address?->address_label ?? '') == 'others' ? 'selected' : ''}}>{{translate('others')}}</option>
                                     </select>
                                 </div>
                             </div>
@@ -62,7 +62,7 @@
                                     <div class="form-floating">
                                         <input type="text" class="form-control" name="address" id="address_address"
                                                placeholder="{{translate('address')}} *"
-                                               value="{{$booking->service_address?->address}}" required>
+                                               value="{{$booking->service_address?->address ?? ''}}" required>
                                         <label>{{translate('address')}} *</label>
                                     </div>
                                 </div>
@@ -72,7 +72,7 @@
                                     <div class="form-floating">
                                         <input type="text" class="form-control" name="latitude" id="address_latitude"
                                                placeholder="{{translate('lat')}} *"
-                                               value="{{$booking->service_address?->lat}}" required readonly
+                                               value="{{$booking->service_address?->lat ?? ''}}" required readonly
                                                data-bs-toggle="tooltip" data-bs-placement="top"
                                                title="{{translate('Select from map')}}">
                                         <label>{{translate('lat')}} *</label>
@@ -84,7 +84,7 @@
                                     <div class="form-floating">
                                         <input type="text" class="form-control" name="longitude" id="address_longitude"
                                                placeholder="{{translate('long')}} *"
-                                               value="{{$booking->service_address?->lon}}" required readonly
+                                               value="{{$booking->service_address?->lon ?? ''}}" required readonly
                                                data-bs-toggle="tooltip" data-bs-placement="top"
                                                title="{{translate('Select from map')}}">
                                         <label>{{translate('long')}} *</label>
@@ -96,7 +96,7 @@
                                     <div class="form-floating">
                                         <input type="text" class="form-control" name="city"
                                                placeholder="{{translate('city')}}"
-                                               value="{{$booking->service_address?->city}}">
+                                               value="{{$booking->service_address?->city ?? ''}}">
                                         <label>{{translate('city')}}</label>
                                     </div>
                                 </div>
@@ -106,7 +106,7 @@
                                     <div class="form-floating">
                                         <input type="text" class="form-control" name="street"
                                                placeholder="{{translate('street')}}"
-                                               value="{{$booking->service_address?->street}}">
+                                               value="{{$booking->service_address?->street ?? ''}}">
                                         <label>{{translate('street')}}</label>
                                     </div>
                                 </div>
@@ -116,7 +116,7 @@
                                     <div class="form-floating">
                                         <input type="text" class="form-control" name="zip_code"
                                                placeholder="{{translate('zip_code')}}"
-                                               value="{{$booking->service_address?->zip_code}}">
+                                               value="{{$booking->service_address?->zip_code ?? ''}}">
                                         <label>{{translate('zip_code')}}</label>
                                     </div>
                                 </div>
@@ -126,7 +126,7 @@
                                     <div class="form-floating">
                                         <input type="text" class="form-control" name="country"
                                                placeholder="{{translate('country')}}"
-                                               value="{{$booking->service_address?->country}}">
+                                               value="{{$booking->service_address?->country ?? ''}}">
                                         <label>{{translate('country')}}</label>
                                     </div>
                                 </div>

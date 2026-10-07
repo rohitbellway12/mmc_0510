@@ -68,10 +68,10 @@ if (!function_exists('device_notification')) {
                     "booking_type" => (string)$bookingType,
                     "repeat_type" => (string)$repeat_type,
                 ],
-                "notification" => [
+                "notification" => array_merge([
                     'title' => (string)$title,
                     'body' => (string)$description,
-                ],
+                ], !empty($image) ? ['image' => (string)$image] : []),
                 "apns" => [
                     "payload" => [
                         "aps" => [
@@ -80,12 +80,19 @@ if (!function_exists('device_notification')) {
                     ]
                 ],
                 "android" => [
-                    "notification" => [
+                    "notification" => array_merge([
                         "channelId" => "demandium"
-                    ]
+                    ], !empty($image) ? ["image" => (string)$image] : []),
                 ],
             ]
         ];
+
+        if (!empty($image)) {
+            $postData['message']['apns']['fcm_options'] = [
+                'image' => (string)$image,
+            ];
+            $postData['message']['apns']['payload']['aps']['mutable-content'] = 1;
+        }
 
         return sendNotificationToHttp($postData);
     }
@@ -119,12 +126,19 @@ if (!function_exists('topic_notification')) {
                     ]
                 ],
                 "android" => [
-                    "notification" => [
+                    "notification" => array_merge([
                         "channelId" => "demandium"
-                    ]
+                    ], !empty($image) ? ["image" => (string)$image] : []),
                 ],
             ]
         ];
+
+        if (!empty($image)) {
+            $postData['message']['apns']['fcm_options'] = [
+                'image' => (string)$image,
+            ];
+            $postData['message']['apns']['payload']['aps']['mutable-content'] = 1;
+        }
 
         return sendNotificationToHttp($postData);
     }

@@ -14,6 +14,9 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
 use Modules\PromotionManagement\Entities\PushNotification;
 use Modules\ZoneManagement\Entities\Zone;
+use Modules\UserManagement\Entities\User;
+use Modules\UserManagement\Entities\Serviceman;
+use Modules\ProviderManagement\Entities\Provider;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -159,6 +162,8 @@ class PushNotificationController extends Controller
             }
         }
 
+        $this->sendDeviceNotificationsToUsers($filteredUsers, $validatedData['zone_ids'] ?? [], $validatedData['title'], $validatedData['description'], $image_name);
+
         Toastr::success(translate(BANNER_CREATE_200['message']));
         return back();
     }
@@ -196,6 +201,8 @@ class PushNotificationController extends Controller
                 }
             }
         }
+
+        $this->sendDeviceNotificationsToUsers($filteredUsers, $pushNotification['zone_ids'] ?? [], $pushNotification['title'], $pushNotification['description'], $pushNotification['cover_image']);
 
         Toastr::success(translate('push notification send successfully'));
         return back();
@@ -324,5 +331,94 @@ class PushNotificationController extends Controller
             ->latest()->get();
 
         return (new FastExcel($items))->download(time().'-file.xlsx');
+    }
+
+    /**
+     * Send direct device notifications to targeted users with active FCM tokens.
+     */
+    private function sendDeviceNotificationsToUsers(array $filteredUsers, array $zoneIds, string $title, string $description, ?string $coverImage): void
+    {
+        $tokens = [];
+        $imageUrl = null;
+        if (!empty($coverImage)) {
+            if (filter_var($coverImage, FILTER_VALIDATE_URL)) {
+                $imageUrl = $coverImage;
+            } else {
+                $imageUrl = function_exists('getSingleImageFullPath')
+                    ? getSingleImageFullPath('push-notification/' . $coverImage, null, asset('storage/app/public/push-notification/' . $coverImage))
+                    : asset('storage/app/public/push-notification/' . $coverImage);
+            }
+        }
+
+        // 1. Customers
+        if (in_array('customer', $filteredUsers)) {
+            $customerTokens = User::where('user_type', 'customer')
+                ->where('is_active', 1)
+                ->whereNotNull('fcm_token')
+                ->where('fcm_token', '!=', '')
+                ->when(!empty($zoneIds), function ($query) use ($zoneIds) {
+                    $query->where(function ($sub) use ($zoneIds) {
+                        $sub->whereHas('addresses', function ($aq) use ($zoneIds) {
+                            $aq->whereIn('zone_id', $zoneIds);
+                        })->orWhereDoesntHave('addresses');
+                    });
+                })
+                ->pluck('fcm_token')
+                ->toArray();
+
+            $tokens = array_merge($tokens, $customerTokens);
+        }
+
+        // 2. Providers
+        if (in_array('provider-admin', $filteredUsers)) {
+            $providerUserIds = Provider::where('is_active', 1)
+                ->when(!empty($zoneIds), function ($query) use ($zoneIds) {
+                    $query->whereIn('zone_id', $zoneIds);
+                })
+                ->pluck('user_id')
+                ->toArray();
+
+            $providerTokens = User::where('user_type', 'provider-admin')
+                ->whereIn('id', $providerUserIds)
+                ->whereNotNull('fcm_token')
+                ->where('fcm_token', '!=', '')
+                ->pluck('fcm_token')
+                ->toArray();
+
+            $tokens = array_merge($tokens, $providerTokens);
+        }
+
+        // 3. Servicemen
+        if (in_array('provider-serviceman', $filteredUsers)) {
+            $providerIds = Provider::where('is_active', 1)
+                ->when(!empty($zoneIds), function ($query) use ($zoneIds) {
+                    $query->whereIn('zone_id', $zoneIds);
+                })
+                ->pluck('id')
+                ->toArray();
+
+            $servicemanUserIds = Serviceman::whereIn('provider_id', $providerIds)
+                ->pluck('user_id')
+                ->toArray();
+
+            $servicemanTokens = User::where('user_type', 'provider-serviceman')
+                ->whereIn('id', $servicemanUserIds)
+                ->whereNotNull('fcm_token')
+                ->where('fcm_token', '!=', '')
+                ->pluck('fcm_token')
+                ->toArray();
+
+            $tokens = array_merge($tokens, $servicemanTokens);
+        }
+
+        $tokens = array_unique(array_filter($tokens));
+
+        foreach ($tokens as $token) {
+            try {
+                device_notification($token, $title, $description, $imageUrl, null, 'general');
+            } catch (\Exception $e) {
+                // Ignore any single failed token and continue
+            }
+        }
     }
 }

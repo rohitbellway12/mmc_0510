@@ -7253,4 +7253,8 @@ _Message' => 'Customer notification for provider bid offer
   'Hello Ritik Shivhare, here is your quotation/booking estimate for Audi Series 5 (2024) from TATA ROHIT: http://localhost:3000/estimate/99eb59a0c8494666829532ec03e01e9c738a2c98dd89e292' => 'Hello Ritik Shivhare, here is your quotation/booking estimate for Audi Series 5 (2024) from TATA ROHIT: http://localhost:3000/estimate/99eb59a0c8494666829532ec03e01e9c738a2c98dd89e292',
   'Hello Ritik Shivhare, here is your quotation/booking estimate for Sound system upgrade from TATA ROHIT: http://localhost:3000/estimate/f0067f861826437f2e864607a84dd86223dfcf07556d9f51' => 'Hello Ritik Shivhare, here is your quotation/booking estimate for Sound system upgrade from TATA ROHIT: http://localhost:3000/estimate/f0067f861826437f2e864607a84dd86223dfcf07556d9f51',
   'Car_Hire_Booking' => 'Car Hire Booking',
+  'Please update your account details with accurate information. This information will be used by the admin for processing withdrawal request transaction
+' => 'Please update your account details with accurate information. This information will be used by the admin for processing withdrawal request transaction
+',
+  'push notification send successfully' => 'Push notification send successfully',
 );

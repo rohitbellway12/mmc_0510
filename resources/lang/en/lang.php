@@ -7257,4 +7257,18 @@ _Message' => 'Customer notification for provider bid offer
 ' => 'Please update your account details with accurate information. This information will be used by the admin for processing withdrawal request transaction
 ',
   'push notification send successfully' => 'Push notification send successfully',
+  'Hello Ritik Shivhare, here is your quotation/booking estimate for Sound system upgrade from TATA ROHIT: http://localhost:3000/estimate/5fc28d30e4fdb347c7215abcb6ee46d05a4f39c1d0ea826f' => 'Hello Ritik Shivhare, here is your quotation/booking estimate for Sound system upgrade from TATA ROHIT: http://localhost:3000/estimate/5fc28d30e4fdb347c7215abcb6ee46d05a4f39c1d0ea826f',
+  'Customer_Shareable_Link_&_Message' => 'Customer Shareable Link & Message',
+  'Send this quotation message & link to the customer via WhatsApp, SMS, or Email. Customer can view quotation details and accept online.' => 'Send this quotation message & link to the customer via WhatsApp, SMS, or Email. Customer can view quotation details and accept online.',
+  'Copy Formatted Message' => 'Copy Formatted Message',
+  'Copy_Message' => 'Copy Message',
+  'Copy Link Only' => 'Copy Link Only',
+  'Customer_Message_Preview' => 'Customer Message Preview',
+  'Quotation message copied to clipboard!' => 'Quotation message copied to clipboard!',
+  'Share_Quotation' => 'Share Quotation',
+  'Share this formatted quotation message directly with your customer via WhatsApp, Email, SMS, or any installed application.' => 'Share this formatted quotation message directly with your customer via WhatsApp, Email, SMS, or any installed application.',
+  'Customer_Message' => 'Customer Message',
+  'Click Share to send via any app' => 'Click Share to send via any app',
+  'Ready to send to customer' => 'Ready to send to customer',
+  'Quick_Copy' => 'Quick Copy',
 );

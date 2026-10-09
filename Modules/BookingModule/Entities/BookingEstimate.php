@@ -89,6 +89,8 @@ class BookingEstimate extends Model
         'web_url',
         'car_image_full_path',
         'car_images_full_path',
+        'shareable_message',
+        'whatsapp_share_url',
     ];
 
     public function provider(): BelongsTo
@@ -149,6 +151,33 @@ class BookingEstimate extends Model
             return rtrim($frontendUrl, '/') . '/estimate/' . $this->link_token;
         }
         return url('/estimate/' . $this->link_token);
+    }
+
+    public function getShareableMessageAttribute(): string
+    {
+        $customerName = !empty($this->customer_name) ? trim($this->customer_name) : 'Customer';
+        $quoteId = !empty($this->readable_id) ? $this->readable_id : $this->id;
+        $isCar = in_array($this->module_type, ['car_hire', 'chauffeur']);
+        $itemTitle = $isCar 
+            ? ($this->car_model ?? 'Vehicle Rental') 
+            : ($this->service?->name ?? ($this->category?->name ?? 'Service'));
+        
+        $totalAmount = $this->total_amount ?? $this->price ?? 0;
+        $formattedPrice = function_exists('with_currency_symbol') 
+            ? with_currency_symbol($totalAmount) 
+            : '£' . number_format($totalAmount, 2);
+
+        $url = $this->web_url;
+        $companyName = 'MMC Club';
+
+        return "Hello {$customerName},\n\nHere is your quotation #{$quoteId} for {$itemTitle}.\nQuoted Price: {$formattedPrice}\n\nView and confirm your quotation here:\n{$url}\n\nThank you,\n{$companyName}";
+    }
+
+    public function getWhatsappShareUrlAttribute(): string
+    {
+        $cleanPhone = preg_replace('/[^0-9]/', '', (string)$this->customer_phone);
+        $encodedMsg = urlencode($this->shareable_message);
+        return "https://api.whatsapp.com/send?phone={$cleanPhone}&text={$encodedMsg}";
     }
 
     public function getCarImagesAttribute(): array

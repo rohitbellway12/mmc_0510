@@ -229,23 +229,21 @@
                                                     <span class="material-icons">visibility</span>
                                                 </a>
 
-                                                {{-- Copy Link Button --}}
-                                                <button type="button" class="action-btn btn--light-info copy-link-btn" 
-                                                        data-link="{{ $estimate->web_url }}" 
-                                                        title="{{ translate('Copy Customer Link') }}" style="--size: 30px">
-                                                    <span class="material-icons">content_copy</span>
+                                                {{-- Share Quotation Button --}}
+                                                <button type="button" class="action-btn btn--light-success native-share-btn" 
+                                                        data-title="Quotation #{{ $estimate->readable_id ?? $estimate->id }}"
+                                                        data-message="{{ e($estimate->shareable_message) }}" 
+                                                        data-wa="{{ $estimate->whatsapp_share_url }}"
+                                                        title="{{ translate('Share Quotation') }}" style="--size: 30px">
+                                                    <span class="material-icons">share</span>
                                                 </button>
 
-                                                {{-- WhatsApp Share --}}
-                                                @php
-                                                    $cleanPhone = preg_replace('/[^0-9]/', '', $estimate->customer_phone);
-                                                    $itemTitle = $isCarEstimate ? $estimate->car_model : ($estimate->service?->name ?? 'service');
-                                                    $waText = urlencode(translate("Hello {$estimate->customer_name}, here is your quotation/booking estimate for {$itemTitle} from " . (auth()->user()->provider->company_name ?? 'our service') . ": {$estimate->web_url}"));
-                                                @endphp
-                                                <a href="https://api.whatsapp.com/send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank"
-                                                   class="action-btn btn--light-success" title="{{ translate('Share on WhatsApp') }}" style="--size: 30px">
-                                                    <span class="material-icons">chat</span>
-                                                </a>
+                                                {{-- Copy Message Button --}}
+                                                <button type="button" class="action-btn btn--light-info copy-message-btn" 
+                                                        data-message="{{ e($estimate->shareable_message) }}" 
+                                                        title="{{ translate('Copy Quotation Message') }}" style="--size: 30px">
+                                                    <span class="material-icons">content_copy</span>
+                                                </button>
 
                                                 {{-- Cancel Button if pending --}}
                                                 @if($estimate->status == 'pending')
@@ -288,15 +286,76 @@
 @push('script')
     <script>
         $(document).ready(function() {
-            $('.copy-link-btn').on('click', function() {
-                let link = $(this).data('link');
-                navigator.clipboard.writeText(link).then(function() {
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success("{{ translate('Quotation link copied to clipboard!') }}");
-                    } else {
-                        alert("{{ translate('Link copied!') }}");
+            function copyTextToClipboard(text, successMessage) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        showCopyToast(successMessage);
+                    }).catch(function() {
+                        fallbackCopy(text, successMessage);
+                    });
+                } else {
+                    fallbackCopy(text, successMessage);
+                }
+            }
+
+            function fallbackCopy(text, successMessage) {
+                let tempTextArea = document.createElement("textarea");
+                tempTextArea.value = text;
+                tempTextArea.style.position = "fixed";
+                tempTextArea.style.left = "-9999px";
+                document.body.appendChild(tempTextArea);
+                tempTextArea.focus();
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    showCopyToast(successMessage);
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                }
+                document.body.removeChild(tempTextArea);
+            }
+
+            function showCopyToast(msg) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.success(msg);
+                } else {
+                    alert(msg);
+                }
+            }
+
+            // Native share (Desktop / Mobile apps)
+            $(document).on('click', '.native-share-btn', async function() {
+                let title = $(this).attr('data-title') || 'Quotation';
+                let message = $(this).attr('data-message');
+                let waUrl = $(this).attr('data-wa');
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: title,
+                            text: message
+                        });
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            copyTextToClipboard(message, "{{ translate('Quotation message copied to clipboard!') }}");
+                        }
                     }
-                });
+                } else if (waUrl) {
+                    window.open(waUrl, '_blank');
+                } else {
+                    copyTextToClipboard(message, "{{ translate('Quotation message copied to clipboard!') }}");
+                }
+            });
+
+            // Copy formatted message
+            $(document).on('click', '.copy-message-btn', function() {
+                let message = $(this).attr('data-message') || $(this).data('message');
+                copyTextToClipboard(message, "{{ translate('Quotation message copied to clipboard!') }}");
+            });
+
+            // Legacy / link copy
+            $(document).on('click', '.copy-link-btn', function() {
+                let link = $(this).attr('data-link') || $(this).data('link');
+                copyTextToClipboard(link, "{{ translate('Quotation link copied to clipboard!') }}");
             });
         });
     </script>

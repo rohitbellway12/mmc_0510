@@ -321,9 +321,6 @@ class BookingEstimateController extends Controller
 
             $estimate->load(['car', 'category', 'provider.owner']);
 
-            $cleanPhone = preg_replace('/[^0-9]/', '', $estimate->customer_phone);
-            $waMsg = translate("Hello {$estimate->customer_name}, here is your Car Hire / Chauffeur booking quotation for {$estimate->car_model} from {$provider->company_name}: {$estimate->web_url}");
-
             return response()->json(response_formatter([
                 'response_code' => 'estimate_created_200',
                 'message' => translate('Car Hire / Chauffeur quotation created successfully! Share the link with the customer.'),
@@ -331,7 +328,8 @@ class BookingEstimateController extends Controller
                 'estimate' => $estimate,
                 'share_link' => $estimate->web_url,
                 'deep_link' => $estimate->deep_link_url,
-                'whatsapp_share_url' => 'https://api.whatsapp.com/send?phone=' . $cleanPhone . '&text=' . urlencode($waMsg),
+                'shareable_message' => $estimate->shareable_message,
+                'whatsapp_share_url' => $estimate->whatsapp_share_url,
             ]), 200);
         }
 
@@ -501,7 +499,8 @@ class BookingEstimateController extends Controller
             'estimate' => $estimate,
             'share_link' => $estimate->web_url,
             'deep_link' => $estimate->deep_link_url,
-            'whatsapp_share_url' => 'https://api.whatsapp.com/send?phone=' . preg_replace('/[^0-9]/', '', $estimate->customer_phone) . '&text=' . urlencode(translate("Hello {$estimate->customer_name}, here is your quotation/booking estimate for {$service->name} from {$provider->company_name}: {$estimate->web_url}")),
+            'shareable_message' => $estimate->shareable_message,
+            'whatsapp_share_url' => $estimate->whatsapp_share_url,
         ]), 200);
     }
 

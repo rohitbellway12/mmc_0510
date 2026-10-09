@@ -37,43 +37,47 @@
                 </div>
             </div>
 
-            {{-- Link Sharing Banner --}}
+            {{-- Shareable Quotation Message Banner --}}
             <div class="card border-0 shadow-sm mb-4 bg-primary-subtle border-start border-4 border-primary">
-                <div class="card-body p-4">
-                    <div class="row align-items-center g-3">
-                        <div class="col-lg-7">
-                            <h4 class="text-primary fw-bold mb-1 d-flex align-items-center gap-2">
-                                <span class="material-icons">share</span>
-                                {{ translate('Customer_Shareable_Link') }}
+                <div class="card-body p-3 p-md-4">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
+                        <div>
+                            <h4 class="text-primary fw-bold mb-1 d-flex align-items-center gap-2 fz-16">
+                                <span class="material-icons text-primary fs-20">share</span>
+                                {{ translate('Share_Quotation') }}
                             </h4>
-                            <p class="text-muted fz-13 mb-3">
-                                {{ translate('Send this quotation link to the customer via WhatsApp, SMS, or Email. Customer can view quotation details and accept online.') }}
+                            <p class="text-muted fz-13 mb-0">
+                                {{ translate('Share this formatted quotation message directly with your customer via WhatsApp, Email, SMS, or any installed application.') }}
                             </p>
-                            <div class="input-group">
-                                <input type="text" id="share_link_input" class="form-control bg-white fw-medium" value="{{ $estimate->web_url }}" readonly>
-                                <button type="button" class="btn btn-primary d-flex align-items-center gap-1 copy-btn" data-target="#share_link_input">
-                                    <span class="material-icons fs-16">content_copy</span>
-                                    {{ translate('Copy_Link') }}
-                                </button>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <button type="button" class="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold native-share-btn shadow-xs">
+                                <span class="material-icons fs-16">share</span>
+                                {{ translate('Share_Quotation') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-primary d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold copy-message-btn" data-message="{{ e($estimate->shareable_message) }}">
+                                <span class="material-icons fs-16">content_copy</span>
+                                {{ translate('Copy_Message') }}
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Formatted Message Card --}}
+                    <div class="bg-white rounded-3 p-3 border shadow-2xs">
+                        <div class="d-flex align-items-center justify-content-between pb-2 mb-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary-subtle text-primary fw-semibold px-2 py-1 fz-11 d-inline-flex align-items-center gap-1">
+                                    <span class="material-icons fs-14">mail_outline</span>
+                                    {{ translate('Customer_Message') }}
+                                </span>
+                                <span class="text-muted fz-12">{{ translate('Ready to send to customer') }}</span>
                             </div>
+                            <button type="button" class="btn btn-sm btn-link text-primary text-decoration-none p-0 fz-12 fw-semibold copy-message-btn d-inline-flex align-items-center gap-1" data-message="{{ e($estimate->shareable_message) }}">
+                                <span class="material-icons fs-14">content_copy</span>
+                                {{ translate('Quick_Copy') }}
+                            </button>
                         </div>
-                        <div class="col-lg-5 text-lg-end">
-                            @php
-                                $cleanPhone = preg_replace('/[^0-9]/', '', $estimate->customer_phone);
-                                $itemTitle = ($estimate->module_type === 'car_hire' || $estimate->module_type === 'chauffeur') ? $estimate->car_model : ($estimate->service?->name ?? 'service');
-                                $waText = urlencode(translate("Hello {$estimate->customer_name}, here is your quotation/booking estimate for {$itemTitle} from " . (auth()->user()->provider->company_name ?? 'our service') . ": {$estimate->web_url}"));
-                            @endphp
-                            <a href="https://api.whatsapp.com/send?phone={{ $cleanPhone }}&text={{ $waText }}" target="_blank" 
-                               class="btn btn-success d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold">
-                                <span class="material-icons">chat</span>
-                                {{ translate('Send_via_WhatsApp') }}
-                            </a>
-                            <a href="{{ $estimate->web_url }}" target="_blank" 
-                               class="btn btn-outline-primary d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold">
-                                <span class="material-icons">open_in_new</span>
-                                {{ translate('Preview_Customer_Page') }}
-                            </a>
-                        </div>
+                        <div class="message-body text-dark fz-13" style="white-space: pre-line; line-height: 1.55; word-break: break-word;">{{ $estimate->shareable_message }}</div>
                     </div>
                 </div>
             </div>
@@ -408,15 +412,74 @@
 @push('script')
     <script>
         $(document).ready(function() {
-            $('.copy-btn').on('click', function() {
-                let target = $($(this).data('target'));
-                navigator.clipboard.writeText(target.val()).then(function() {
-                    if (typeof toastr !== 'undefined') {
-                        toastr.success("{{ translate('Link copied to clipboard!') }}");
-                    } else {
-                        alert("{{ translate('Link copied!') }}");
+            function copyTextToClipboard(text, successMessage) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        showCopyToast(successMessage);
+                    }).catch(function() {
+                        fallbackCopy(text, successMessage);
+                    });
+                } else {
+                    fallbackCopy(text, successMessage);
+                }
+            }
+
+            function fallbackCopy(text, successMessage) {
+                let tempTextArea = document.createElement("textarea");
+                tempTextArea.value = text;
+                tempTextArea.style.position = "fixed";
+                tempTextArea.style.left = "-9999px";
+                document.body.appendChild(tempTextArea);
+                tempTextArea.focus();
+                tempTextArea.select();
+                try {
+                    document.execCommand('copy');
+                    showCopyToast(successMessage);
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                }
+                document.body.removeChild(tempTextArea);
+            }
+
+            function showCopyToast(msg) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.success(msg);
+                } else {
+                    alert(msg);
+                }
+            }
+
+            // Native Share functionality (Desktop / Mobile apps)
+            const shareTitle = 'Quotation #{{ $estimate->readable_id ?? $estimate->id }}';
+            const shareText = @json($estimate->shareable_message);
+
+            $(document).on('click', '.native-share-btn', async function() {
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: shareTitle,
+                            text: shareText
+                        });
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            copyTextToClipboard(shareText, "{{ translate('Quotation message copied to clipboard!') }}");
+                        }
                     }
-                });
+                } else {
+                    copyTextToClipboard(shareText, "{{ translate('Quotation message copied to clipboard!') }}");
+                }
+            });
+
+            // Copy full dynamic message
+            $(document).on('click', '.copy-message-btn', function() {
+                let message = $(this).attr('data-message') || $(this).data('message') || shareText;
+                copyTextToClipboard(message, "{{ translate('Quotation message copied to clipboard!') }}");
+            });
+
+            // Copy button
+            $(document).on('click', '.copy-btn', function() {
+                let message = $(this).attr('data-message') || $(this).data('message') || shareText;
+                copyTextToClipboard(message, "{{ translate('Quotation message copied to clipboard!') }}");
             });
         });
     </script>

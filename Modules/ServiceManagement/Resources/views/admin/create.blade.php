@@ -248,17 +248,21 @@
                                                                 </div>
                                                                 --}}
                                                                 <input type="hidden" name="tax" value="0">
+                                                                {{-- 
+                                                                <!-- Base Price Field (Hidden - Default 0) -->
                                                                 <div class="col-lg-4 col-md-6">
                                                                     <div class="m-0 form-floating form-floating__icon">
                                                                         <input type="number" class="form-control"
-                                                                            name="price" min="0" step="any"
+                                                                            name="price_input" min="0" step="any"
                                                                             placeholder="{{ translate('base_price') }} *"
-                                                                            required="" value="{{ old('price', 0) }}">
+                                                                            value="{{ old('price', 0) }}">
                                                                         <label>{{ translate('base_price') }}
                                                                             *</label>
                                                                         <span class="material-icons">monetization_on</span>
                                                                     </div>
                                                                 </div>
+                                                                --}}
+                                                                <input type="hidden" name="price" value="0">
                                                                 <div class="col-lg-4 col-md-5 d-none">
                                                                     <!-- Removed Min Bidding Price -->
                                                                     <input type="hidden" name="min_bidding_price"

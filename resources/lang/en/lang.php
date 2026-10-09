@@ -7271,4 +7271,6 @@ _Message' => 'Customer notification for provider bid offer
   'Click Share to send via any app' => 'Click Share to send via any app',
   'Ready to send to customer' => 'Ready to send to customer',
   'Quick_Copy' => 'Quick Copy',
+  'Share Quotation' => 'Share Quotation',
+  'Copy Quotation Message' => 'Copy Quotation Message',
 );

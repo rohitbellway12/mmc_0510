@@ -1,0 +1,1007 @@
+{
+    "info": {
+        "_postman_id": "f2c413d3-b416-4648-bd7e-12a04200d9ce",
+        "name": "06_mmc_tyre_management_postman_collection",
+        "description": "Complete End-to-End Tyre Fittings Collection for MMC:\n\n1. Overview & Category Services (Emergency vs Replacement)\n2. Flow A: Tyre Emergency Service (Puncture / Burst Repair, Search Provider, Questions, Cart & Booking)\n3. Flow B: Tyre Replacement Service (Tyre Catalog Filter, Buy Tyres + Fitting, Cart & Booking with Tyre ID)\n4. Provider Tyre Inventory CRUD (List, Store, Details, Update, Status, Delete)\n5. Provider Booking Operations (List, Accept, Status Update)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "BASE_URL",
+            "value": "http://localhost/mmc",
+            "type": "string"
+        },
+        {
+            "key": "ZONE_ID",
+            "value": "a1614dbe-4732-11ee-9702-dee6e8d77be4",
+            "type": "string"
+        },
+        {
+            "key": "CATEGORY_ID",
+            "value": "5d98d5c9-509e-4ab7-859d-806174384e27",
+            "type": "string"
+        },
+        {
+            "key": "PROVIDER_ID",
+            "value": "cffcce91-5498-4b73-b571-8e6e69bbd89d",
+            "type": "string"
+        },
+        {
+            "key": "TYRE_EMERGENCY_SERVICE_ID",
+            "value": "1e5455a9-62f8-4489-bfa8-4eb52d033a7d",
+            "type": "string"
+        },
+        {
+            "key": "TYRE_REPLACEMENT_SERVICE_ID",
+            "value": "9913c6e3-1f99-4929-989c-25484da50e00",
+            "type": "string"
+        },
+        {
+            "key": "TYRE_ID",
+            "value": "2c4b2b2e-b974-4405-bf67-06ef5f8a94eb",
+            "type": "string"
+        },
+        {
+            "key": "CUSTOMER_TOKEN",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "PROVIDER_TOKEN",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "SERVICE_ADDRESS_ID",
+            "value": "6",
+            "type": "string"
+        },
+        {
+            "key": "BOOKING_ID",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "01 - Overview & Category Services",
+            "item": [
+                {
+                    "name": "1. Get Tyre Category Services (Shows Emergency & Replacement)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "zoneid",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/service/category/{{CATEGORY_ID}}?limit=10&offset=1",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "service",
+                                "category",
+                                "{{CATEGORY_ID}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "description": "Returns 2 services in Tyre Fittings category:\n1. Tyre Emergency Service (Variations: puncture, burst-tyre)\n2. Tyre Replacement Service (Variations empty - uses tyre/list catalog)"
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "02 - Flow A: Tyre Emergency Service (Repair / Puncture / Roadside)",
+            "item": [
+                {
+                    "name": "1. Search Providers for Emergency Service",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "zoneId",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"service_id\": \"{{TYRE_EMERGENCY_SERVICE_ID}}\",\n    \"answers\": [\n        \"Mobile Tyre Service\"\n    ],\n    \"car_registration_number\": \"UK22-XYZ-9999\",\n    \"damage_description\": \"Tyre punctured on motorway, need urgent puncture repair\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/provider/search-by-service",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "provider",
+                                "search-by-service"
+                            ]
+                        },
+                        "description": "Searches available providers who have subscribed to Tyre Emergency Service with capabilities (e.g. Mobile Tyre Service)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2. Get Provider Questions for Category",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/booking/provider/questions?provider_id={{PROVIDER_ID}}&category_id={{CATEGORY_ID}}",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "booking",
+                                "provider",
+                                "questions"
+                            ],
+                            "query": [
+                                {
+                                    "key": "provider_id",
+                                    "value": "{{PROVIDER_ID}}"
+                                },
+                                {
+                                    "key": "category_id",
+                                    "value": "{{CATEGORY_ID}}"
+                                }
+                            ]
+                        },
+                        "description": "Fetches custom questions set by provider for Tyre Fittings category."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3. Add Emergency Service to Cart (Puncture / Burst Variant)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{CUSTOMER_TOKEN}}"
+                            },
+                            {
+                                "key": "zoneid",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"provider_id\": \"{{PROVIDER_ID}}\",\n    \"service_id\": \"{{TYRE_EMERGENCY_SERVICE_ID}}\",\n    \"category_id\": \"{{CATEGORY_ID}}\",\n    \"variant_key\": \"puncture\",\n    \"quantity\": 1,\n    \"is_terms_accepted\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/cart/add",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "cart",
+                                "add"
+                            ]
+                        },
+                        "description": "Adds tyre emergency variation (e.g. puncture = 50 or burst-tyre = 100) to customer cart."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "4. View Customer Cart",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{CUSTOMER_TOKEN}}"
+                            },
+                            {
+                                "key": "zoneid",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/cart/list?limit=10&offset=1",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "cart",
+                                "list"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "description": "Fetches customer cart list and verifies total amount."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5. Place Emergency Booking (Cash After Service)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{CUSTOMER_TOKEN}}"
+                            },
+                            {
+                                "key": "zoneId",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"payment_method\": \"cash_after_service\",\n    \"zone_id\": \"{{ZONE_ID}}\",\n    \"service_schedule\": \"2026-10-10 12:00:00\",\n    \"service_address_id\": \"{{SERVICE_ADDRESS_ID}}\",\n    \"service_location\": \"customer\",\n    \"booking_type\": \"emergency\",\n    \"car_registration_number\": \"UK22-XYZ-9999\",\n    \"car_model\": \"Honda Civic\",\n    \"car_manufacture_year\": \"2022\",\n    \"car_color\": \"White\",\n    \"notes\": \"Roadside emergency tyre assistance required immediately.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/booking/request/send",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "booking",
+                                "request",
+                                "send"
+                            ]
+                        },
+                        "description": "Places an emergency tyre repair booking with cash payment."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "6. Place Emergency Booking (Stripe Digital Payment)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{CUSTOMER_TOKEN}}"
+                            },
+                            {
+                                "key": "zoneId",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"payment_method\": \"stripe\",\n    \"is_partial\": 0,\n    \"zone_id\": \"{{ZONE_ID}}\",\n    \"service_schedule\": \"2026-10-10 12:00:00\",\n    \"service_address_id\": \"{{SERVICE_ADDRESS_ID}}\",\n    \"service_location\": \"customer\",\n    \"booking_type\": \"emergency\",\n    \"car_registration_number\": \"UK22-XYZ-9999\",\n    \"car_model\": \"Honda Civic\",\n    \"notes\": \"Emergency tyre repair requested with online payment.\",\n    \"callback\": \"{{BASE_URL}}/api/v1/digital-payment-booking-response\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/booking/request/send",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "booking",
+                                "request",
+                                "send"
+                            ]
+                        },
+                        "description": "Generates Stripe payment redirect link for emergency tyre booking."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "03 - Flow B: Tyre Replacement Service (Buy Tyres + Fitting)",
+            "item": [
+                {
+                    "name": "1. List Tyres with Filters (Catalog)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "zoneid",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/tyre/list?category_id={{CATEGORY_ID}}&limit=10&offset=1",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "tyre",
+                                "list"
+                            ],
+                            "query": [
+                                {
+                                    "key": "category_id",
+                                    "value": "{{CATEGORY_ID}}"
+                                },
+                                {
+                                    "key": "brand",
+                                    "value": "Continental",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "rim_size",
+                                    "value": "R16",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "tyre_type",
+                                    "value": "tubeless",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "season",
+                                    "value": "all_season",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "description": "Lists available tyres with details (brand, model, size, price, stock, and attached replacement service_id)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2. Get Customer Tyre Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "zoneid",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/tyre/details/{{TYRE_ID}}",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "tyre",
+                                "details",
+                                "{{TYRE_ID}}"
+                            ]
+                        },
+                        "description": "Fetches single tyre details along with provider and replacement service_id."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3. Add Tyre to Cart (service_id + tyre_id)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{CUSTOMER_TOKEN}}"
+                            },
+                            {
+                                "key": "zoneid",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"service_id\": \"{{TYRE_REPLACEMENT_SERVICE_ID}}\",\n    \"tyre_id\": \"{{TYRE_ID}}\",\n    \"quantity\": 2,\n    \"provider_id\": \"{{PROVIDER_ID}}\",\n    \"category_id\": \"{{CATEGORY_ID}}\",\n    \"is_terms_accepted\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/cart/add",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "cart",
+                                "add"
+                            ]
+                        },
+                        "description": "Adds selected tyres to cart. Backend automatically calculates price from tyre price (e.g. 85 x 2 = 170)."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "4. View Customer Cart",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{CUSTOMER_TOKEN}}"
+                            },
+                            {
+                                "key": "zoneid",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/cart/list?limit=10&offset=1",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "cart",
+                                "list"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "description": "Verify that tyres are in the customer's cart with positive total_cost."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5. Place Tyre Replacement Booking (Cash After Service)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{CUSTOMER_TOKEN}}"
+                            },
+                            {
+                                "key": "zoneId",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"payment_method\": \"cash_after_service\",\n    \"zone_id\": \"{{ZONE_ID}}\",\n    \"service_schedule\": \"2026-10-10 14:30:00\",\n    \"service_address_id\": \"{{SERVICE_ADDRESS_ID}}\",\n    \"service_location\": \"customer\",\n    \"booking_type\": \"normal\",\n    \"car_registration_number\": \"UK22-XYZ-9999\",\n    \"car_model\": \"Honda Civic\",\n    \"car_manufacture_year\": \"2022\",\n    \"car_color\": \"White\",\n    \"notes\": \"Please bring both selected tyres for fitting.\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/booking/request/send",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "booking",
+                                "request",
+                                "send"
+                            ]
+                        },
+                        "description": "Places tyre replacement booking with Cash After Service."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "6. Place Tyre Replacement Booking (Stripe Digital Payment)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{CUSTOMER_TOKEN}}"
+                            },
+                            {
+                                "key": "zoneId",
+                                "value": "{{ZONE_ID}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"payment_method\": \"stripe\",\n    \"is_partial\": 0,\n    \"zone_id\": \"{{ZONE_ID}}\",\n    \"service_schedule\": \"2026-10-10 14:30:00\",\n    \"service_address_id\": \"{{SERVICE_ADDRESS_ID}}\",\n    \"service_location\": \"customer\",\n    \"booking_type\": \"normal\",\n    \"car_registration_number\": \"UK22-XYZ-9999\",\n    \"car_model\": \"Honda Civic\",\n    \"notes\": \"Please bring both tyres for rear fitting.\",\n    \"callback\": \"{{BASE_URL}}/api/v1/digital-payment-booking-response\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/customer/booking/request/send",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "customer",
+                                "booking",
+                                "request",
+                                "send"
+                            ]
+                        },
+                        "description": "Initiates Stripe payment for tyre replacement booking (Full or Partial)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "04 - Provider Tyre Inventory Management (CRUD)",
+            "item": [
+                {
+                    "name": "1. List Provider Tyres",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/tyre/list?limit=10&offset=1",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "tyre",
+                                "list"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "offset",
+                                    "value": "1"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2. Create Provider Tyre (With Detailed Specs)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"category_id\": \"{{CATEGORY_ID}}\",\n    \"brand\": \"Michelin\",\n    \"model\": \"Pilot Sport 5\",\n    \"tyre_type\": \"tubeless\",\n    \"season\": \"all_season\",\n    \"vehicle_type\": \"passenger_car\",\n    \"width\": \"225\",\n    \"profile\": \"45\",\n    \"rim_size\": \"R17\",\n    \"speed_rating\": \"Y\",\n    \"load_index\": \"94\",\n    \"size\": \"225/45 R17 94Y\",\n    \"price\": 115,\n    \"stock\": 20,\n    \"images\": []\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/tyre/store",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "tyre",
+                                "store"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3. Get Provider Tyre Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/tyre/details/{{TYRE_ID}}",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "tyre",
+                                "details",
+                                "{{TYRE_ID}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "4. Update Provider Tyre",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"brand\": \"Michelin\",\n    \"model\": \"Pilot Sport 5 Ultra\",\n    \"tyre_type\": \"tubeless\",\n    \"season\": \"all_season\",\n    \"vehicle_type\": \"passenger_car\",\n    \"width\": \"225\",\n    \"profile\": \"45\",\n    \"rim_size\": \"R17\",\n    \"speed_rating\": \"Y\",\n    \"load_index\": \"94\",\n    \"size\": \"225/45 R17 94Y\",\n    \"price\": 120,\n    \"stock\": 25\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/tyre/update/{{TYRE_ID}}",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "tyre",
+                                "update",
+                                "{{TYRE_ID}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "5. Toggle Tyre Status (Active / Inactive)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/tyre/status-update/{{TYRE_ID}}",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "tyre",
+                                "status-update",
+                                "{{TYRE_ID}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "6. Delete Provider Tyre",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/tyre/delete/{{TYRE_ID}}",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "tyre",
+                                "delete",
+                                "{{TYRE_ID}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "05 - Provider Booking Operations",
+            "item": [
+                {
+                    "name": "1. Provider List Bookings",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"booking_status\": \"pending\",\n    \"limit\": 10,\n    \"offset\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/booking",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "booking"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "2. Provider Get Single Booking Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/booking/{{BOOKING_ID}}",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "booking",
+                                "{{BOOKING_ID}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "3. Provider Accept Booking Request",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/booking/request-accept/{{BOOKING_ID}}",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "booking",
+                                "request-accept",
+                                "{{BOOKING_ID}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "4. Provider Change Booking Status (Ongoing / Completed / Canceled)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{PROVIDER_TOKEN}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"booking_status\": \"completed\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{BASE_URL}}/api/v1/provider/booking/status-update/{{BOOKING_ID}}",
+                            "host": [
+                                "{{BASE_URL}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "provider",
+                                "booking",
+                                "status-update",
+                                "{{BOOKING_ID}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

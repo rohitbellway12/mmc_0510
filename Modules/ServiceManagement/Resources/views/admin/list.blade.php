@@ -82,7 +82,7 @@
                                                     <th>{{ translate('name') }}</th>
                                                     <th>{{ translate('category') }}</th>
                                                     <th>{{ translate('zones') }}</th>
-                                                    <th>{{ translate('Price') }}</th>
+{{-- <th>{{ translate('Price') }}</th> --}}
                                                     @can('service_manage_status')
                                                         <th>{{ translate('status') }}</th>
                                                     @endcan
@@ -125,9 +125,11 @@
                                                                 @endif
                                                             @endif
                                                         </td>
+                                                        {{-- 
                                                         <td>
                                                             {{ with_currency_symbol($service->price) }}
-                                                        </td>
+                                                        </td> 
+                                                        --}}
                                                         @can('service_manage_status')
                                                             <td>
                                                                 <label class="switcher" data-bs-toggle="modal"

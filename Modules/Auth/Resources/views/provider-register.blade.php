@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
     <link
-        href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
         rel="stylesheet"/>
 
     <link href="{{asset('public/assets/provider-module')}}/css/material-icons.css" rel="stylesheet"/>
@@ -26,8 +26,601 @@
     <link rel="stylesheet" href="{{asset('public/assets/provider-module')}}/plugins/perfect-scrollbar/perfect-scrollbar.min.css"/>
     <link rel="stylesheet" href="{{asset('public/assets/provider-module')}}/css/toastr.css">
     <link rel="stylesheet" href="{{asset('public/assets/admin-module/plugins/swiper/swiper-bundle.min.css')}}">
+    <link rel="stylesheet" href="{{asset('public/assets/libs/intl-tel-input/css/intlTelInput.css')}}?v={{ time() }}"/>
 
-    <link rel="stylesheet" href="{{asset('public/assets/provider-module')}}/css/style.css"/>
+    <link rel="stylesheet" href="{{asset('public/assets/provider-module')}}/css/style.css?v={{ time() }}"/>
+
+    <style>
+        :root {
+            --primary: #FAD293;
+            --primary-dark: #D4A76A;
+            --bg-dark: #0A0A0A;
+            --card-bg: rgba(18, 18, 18, 0.88);
+            --card-glass: rgba(22, 22, 22, 0.75);
+            --gold-gradient: linear-gradient(135deg, #FAD293 0%, #D4A76A 100%);
+            --gold-glow: 0 0 15px rgba(250, 210, 147, 0.25);
+            --border-gold: rgba(250, 210, 147, 0.22);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.12);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif !important;
+            background: var(--bg-dark) !important;
+            color: #ffffff !important;
+            min-height: 100vh;
+        }
+
+        .gold-gradient-text {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gold {
+            color: var(--primary) !important;
+        }
+
+        .register-wrap.style__two {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr minmax(auto, 780px);
+            background: var(--bg-dark);
+        }
+
+        @media only screen and (max-width: 991px) {
+            .register-wrap.style__two {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .register-left {
+            position: relative;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.88)), url('{{ asset('public/assets/admin-module/img/automotive-login-bg.png') }}') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem;
+        }
+
+        .glass-card-left {
+            background: rgba(18, 18, 18, 0.78);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--border-gold);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            max-width: 480px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .register-right-wrap {
+            background: rgba(12, 12, 12, 0.95) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border-gold);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #ffffff !important;
+        }
+
+        .register-right {
+            max-width: 650px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2.5rem 1.75rem !important;
+            color: #ffffff;
+        }
+
+        /* Steps navigation styling */
+        #register-vertical-steps.wizard.vertical {
+            display: grid;
+            grid-template-columns: 46px 1fr;
+            gap: 1.5rem;
+        }
+
+        @media only screen and (max-width: 575px) {
+            #register-vertical-steps.wizard.vertical {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+        }
+
+        #register-vertical-steps.wizard .steps {
+            padding-top: 1rem;
+            margin-bottom: 0;
+        }
+
+        #register-vertical-steps.wizard .steps ul {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        #register-vertical-steps.wizard .steps ul li,
+        .wizard .steps ul li {
+            position: relative;
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+        }
+
+        #register-vertical-steps.wizard .steps ul li a,
+        .wizard .steps ul li a {
+            text-decoration: none;
+            color: inherit;
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #register-vertical-steps.wizard .steps ul li:not(:first-child) {
+            padding-top: 85px !important;
+            padding-left: 0 !important;
+        }
+
+        @media only screen and (max-width: 575px) {
+            #register-vertical-steps.wizard .steps ul {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+            #register-vertical-steps.wizard .steps ul li:not(:first-child) {
+                padding-top: 0 !important;
+            }
+        }
+
+        #register-vertical-steps.wizard .steps ul li .number,
+        #register-vertical-steps.wizard .steps ul .number,
+        .wizard .steps ul .number {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 38px !important;
+            min-width: 38px !important;
+            max-width: 38px !important;
+            height: 38px !important;
+            min-height: 38px !important;
+            max-height: 38px !important;
+            border-radius: 50% !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            color: rgba(255, 255, 255, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            font-weight: 600 !important;
+            font-size: 0.95rem !important;
+            transition: all 0.3s ease !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
+        }
+
+        #register-vertical-steps.wizard .steps ul li.current .number,
+        .wizard .steps ul .current .number {
+            background: var(--gold-gradient) !important;
+            background-color: #FAD293 !important;
+            color: #000000 !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 18px rgba(250, 210, 147, 0.45) !important;
+            font-weight: 700 !important;
+        }
+
+        #register-vertical-steps.wizard .steps ul li.done .number,
+        .wizard .steps ul .done .number {
+            background: rgba(250, 210, 147, 0.18) !important;
+            background-color: rgba(250, 210, 147, 0.18) !important;
+            color: var(--primary) !important;
+            border: 1px solid var(--primary) !important;
+        }
+
+        #register-vertical-steps.wizard .steps ul li:not(:first-child)::after {
+            background-color: rgba(250, 210, 147, 0.25) !important;
+            width: 2px !important;
+            left: 18px !important;
+        }
+
+        #register-vertical-steps.wizard .steps ul .step-info {
+            display: none !important;
+        }
+
+        /* Action buttons bar */
+        #register-vertical-steps.wizard.vertical .actions {
+            background: rgba(12, 12, 12, 0.96) !important;
+            border-top: 1px solid var(--border-gold);
+            backdrop-filter: blur(15px);
+            padding: 1.25rem 0.5rem;
+            position: sticky;
+            bottom: 0;
+            z-index: 99;
+            margin-top: 1.5rem;
+        }
+
+        #register-vertical-steps.wizard .actions ul {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        #register-vertical-steps.wizard .actions ul a {
+            text-decoration: none;
+            display: inline-block;
+            padding: 0.8rem 2.2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        #register-vertical-steps.wizard .actions ul a[href="#next"],
+        #register-vertical-steps.wizard .actions ul a[href="#finish"] {
+            background: var(--gold-gradient) !important;
+            color: #000000 !important;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(250, 210, 147, 0.3);
+            border: none !important;
+        }
+
+        #register-vertical-steps.wizard .actions ul a[href="#next"]:hover,
+        #register-vertical-steps.wizard .actions ul a[href="#finish"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(250, 210, 147, 0.5);
+            filter: brightness(1.1);
+        }
+
+        #register-vertical-steps.wizard .actions ul a[href="#previous"] {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+
+        #register-vertical-steps.wizard .actions ul a[href="#previous"]:hover {
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
+
+        #register-vertical-steps.wizard .actions ul li.disabled {
+            display: none !important;
+        }
+
+        /* Form elements & inputs */
+        .form-control,
+        .form-select {
+            background-color: var(--input-bg) !important;
+            background: var(--input-bg) !important;
+            border: 1px solid var(--input-border) !important;
+            border-radius: 12px !important;
+            color: #ffffff !important;
+            font-size: 0.95rem;
+            height: 54px !important;
+            padding: 0.8rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: var(--primary) !important;
+            box-shadow: var(--gold-glow) !important;
+            color: #ffffff !important;
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.35) !important;
+        }
+
+        .form-select option {
+            background-color: #161616 !important;
+            color: #ffffff !important;
+        }
+
+        /* Form Floating Labels - Completely eliminate white boxes */
+        .form-floating {
+            position: relative;
+        }
+
+        .form-floating > label,
+        .form-floating > label::after,
+        .form-floating__icon > label,
+        .form-floating__icon > label::after,
+        #register-vertical-steps .form-floating > label,
+        #register-vertical-steps .form-floating + label,
+        #register-vertical-steps.wizard .form-floating > label {
+            color: rgba(255, 255, 255, 0.6) !important;
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .form-floating.form-floating__icon label,
+        .form-floating.form-floating__icon label::after {
+            padding-left: 3.2rem !important;
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        .form-floating.form-floating__icon .form-control {
+            padding-left: 3.2rem !important;
+        }
+
+        .form-floating.form-floating__icon .material-icons {
+            color: var(--primary) !important;
+            opacity: 0.9;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            position: absolute;
+            z-index: 5;
+        }
+
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label,
+        .form-floating__icon > input:focus + label {
+            color: var(--primary) !important;
+            opacity: 1 !important;
+            background: #111111 !important;
+            background-color: #111111 !important;
+            border-radius: 4px;
+            padding: 0 6px !important;
+            display: inline-block !important;
+            width: auto !important;
+        }
+
+        .form-floating > .form-control:focus ~ label::after,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label::after {
+            display: none !important;
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        .togglePassword {
+            position: absolute;
+            right: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.5) !important;
+            font-size: 1.3rem;
+            z-index: 5;
+            transition: color 0.2s;
+        }
+
+        .togglePassword:hover {
+            color: var(--primary) !important;
+        }
+
+        /* Section titles */
+        h3.border-bottom,
+        h5.border-bottom {
+            border-color: var(--border-gold) !important;
+            color: var(--primary) !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px;
+        }
+
+        /* Upload box */
+        .upload-file {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 2px dashed rgba(250, 210, 147, 0.35) !important;
+            border-radius: 16px !important;
+            padding: 0.5rem !important;
+            transition: all 0.3s ease !important;
+            display: inline-block !important;
+        }
+
+        .upload-file:hover {
+            border-color: var(--primary) !important;
+            background: rgba(250, 210, 147, 0.06) !important;
+        }
+
+        .upload-file__img img {
+            background: transparent !important;
+            background-color: transparent !important;
+            border-radius: 12px !important;
+            filter: invert(0.92) brightness(1.2) contrast(1.1) !important;
+        }
+
+        .upload-file__edit {
+            background: var(--gold-gradient) !important;
+            color: #000000 !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        /* International Tel Input */
+        .iti {
+            width: 100%;
+        }
+
+        .iti input {
+            background: var(--input-bg) !important;
+            border: 1px solid var(--input-border) !important;
+            color: #ffffff !important;
+            border-radius: 12px !important;
+            height: 58px;
+        }
+
+        .iti input:focus {
+            border-color: var(--primary) !important;
+            box-shadow: var(--gold-glow) !important;
+        }
+
+        .iti__selected-dial-code {
+            color: #ffffff !important;
+        }
+
+        .iti__country-list {
+            background-color: #161616 !important;
+            border: 1px solid var(--border-gold) !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .iti__country.iti__highlight {
+            background-color: rgba(250, 210, 147, 0.15) !important;
+        }
+
+        .iti__country-name, .iti__dial-code {
+            color: #ffffff !important;
+        }
+
+        .iti__flag {
+            background-color: transparent !important;
+            background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/19.2.15/img/flags.png") !important;
+            box-shadow: none !important;
+        }
+
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .iti__flag {
+                background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/19.2.15/img/flags@2x.png") !important;
+            }
+        }
+
+        /* Map Div */
+        #location_map_div {
+            border: 1px solid var(--border-gold);
+            border-radius: 14px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            height: 280px;
+        }
+
+        #pac-input {
+            background: rgba(18, 18, 18, 0.9) !important;
+            border: 1px solid var(--border-gold) !important;
+            color: #ffffff !important;
+            border-radius: 10px !important;
+            margin-top: 10px;
+            padding: 8px 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        /* Business Plan & Subscription Packages */
+        .business-plan-option {
+            background: rgba(255, 255, 255, 0.04) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border-radius: 16px !important;
+            color: #ffffff !important;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .business-plan-option:hover {
+            border-color: rgba(250, 210, 147, 0.5) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+        }
+
+        .business-plan-option.active {
+            border-color: var(--primary) !important;
+            background: rgba(250, 210, 147, 0.09) !important;
+            box-shadow: var(--gold-glow);
+        }
+
+        .business-plan-option input[type="radio"],
+        .payment-method-option input[type="radio"] {
+            accent-color: var(--primary-dark);
+            cursor: pointer;
+        }
+
+        .price-box {
+            background: rgba(22, 22, 22, 0.9) !important;
+            border: 1px solid rgba(250, 210, 147, 0.25) !important;
+            border-radius: 16px !important;
+            color: #ffffff !important;
+            transition: all 0.3s ease;
+        }
+
+        .price-box.active {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 25px rgba(250, 210, 147, 0.35) !important;
+            background: rgba(28, 25, 20, 0.95) !important;
+        }
+
+        .price-box strong.h3 {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .price-box hr {
+            border-color: rgba(250, 210, 147, 0.2);
+        }
+
+        .price-box ul li {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .swiper-button-next,
+        .swiper-button-prev {
+            color: var(--primary) !important;
+        }
+
+        .payment-method-option {
+            background: rgba(255, 255, 255, 0.04) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            color: #ffffff !important;
+        }
+
+        .payment-method-option.active {
+            border-color: var(--primary) !important;
+            background: rgba(250, 210, 147, 0.08) !important;
+        }
+
+        /* Spartan Multi Image Picker */
+        .spartan_item_wrapper {
+            background: rgba(255, 255, 255, 0.04) !important;
+            border: 2px dashed rgba(250, 210, 147, 0.35) !important;
+            border-radius: 14px !important;
+            overflow: hidden;
+        }
+
+        /* Checkbox styling */
+        .form-check-input {
+            accent-color: var(--primary);
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Toastr */
+        .toast {
+            background-color: rgba(20, 20, 20, 0.95) !important;
+            border: 1px solid var(--primary) !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        /* Preloader */
+        .preloader {
+            background-color: var(--bg-dark) !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -39,22 +632,55 @@
 
     <div class="dark-support">
         <div class="register-wrap style__two">
-            <div class="register-left d-flex justify-content-center align-items-center bg-center" data-bg-img="{{asset('public/assets/provider-module')}}/img/media/login-bg.png">
-                <div class="tf-box d-flex flex-column gap-3 align-items-center justify-content-center p-5 mx-5 h-75">
-                    <div class="px-xl-5 text-center">
-                        <img class="login-img login-logo mb-2"
-                            src="{{ $logo  }}"
-                            alt="{{ translate('logo') }}">
-                        <h2 class="text-center text-dark mt-2">Your <strong class="c1">Right <br> Choice</strong> for On <br> Demand Business</h2>
+            <div class="register-left d-flex justify-content-center align-items-center bg-center">
+                <div class="glass-card-left d-flex flex-column gap-3 align-items-center justify-content-center">
+                    <div class="text-center w-100">
+                        <img class="login-logo mb-3"
+                            src="{{ $logo }}"
+                            alt="{{ translate('MMC Logo') }}"
+                            style="max-width: 150px; filter: drop-shadow(0 0 15px rgba(250, 210, 147, 0.4));">
+
+                        <h2 class="text-center text-white mt-2 fw-bold" style="font-size: 1.85rem; line-height: 1.3;">
+                            Drive Your <br><span class="gold-gradient-text">Business Forward</span>
+                        </h2>
+
+                        <p class="text-white-50 mt-3 mb-4" style="font-size: 0.92rem; line-height: 1.5;">
+                            {{ translate('Join the MMC Elite Automotive Partner Network & expand your service terminal.') }}
+                        </p>
+
+                        <div class="partner-perks text-start d-flex flex-column gap-2 p-3 mb-4" style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border-gold); border-radius: 14px;">
+                            <div class="d-flex align-items-center gap-2" style="font-size: 0.88rem;">
+                                <span class="material-icons text-gold" style="font-size: 18px;">check_circle</span>
+                                <span class="text-white">{{ translate('Direct Automotive Service Bookings') }}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2" style="font-size: 0.88rem;">
+                                <span class="material-icons text-gold" style="font-size: 18px;">check_circle</span>
+                                <span class="text-white">{{ translate('Verified & Trusted Partner Terminal') }}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2" style="font-size: 0.88rem;">
+                                <span class="material-icons text-gold" style="font-size: 18px;">check_circle</span>
+                                <span class="text-white">{{ translate('Real-time Dispatch & Revenue Analytics') }}</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-top" style="border-color: rgba(255, 255, 255, 0.1) !important;">
+                            <span class="text-white-50" style="font-size: 0.9rem;">{{ translate('Already registered as partner?') }}</span>
+                            <a href="{{ route('provider.auth.login') }}" class="text-gold fw-bold ms-1" style="text-decoration: none;">{{ translate('Sign In to Terminal') }} &rarr;</a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="register-right-wrap bg-white">
+            <div class="register-right-wrap">
                 <div class="register-right mx-auto p-3">
-                    <div class="text-center mb-5 d-flex flex-column gap-2 mt-3">
-                        <h2 class="c1 fw-medium">{{translate('Self_Registration')}}</h2>
-                        <p>{{translate('Sign up to provide service broadly')}}</p>
+                    <div class="text-center mb-4 d-flex flex-column gap-1 mt-2">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-1">
+                            <span class="badge" style="background: rgba(250, 210, 147, 0.15); color: #FAD293; border: 1px solid rgba(250, 210, 147, 0.3); border-radius: 20px; font-weight: 600; font-size: 0.75rem; letter-spacing: 1px; padding: 6px 14px; text-transform: uppercase;">
+                                {{ translate('Partner Onboarding') }}
+                            </span>
+                        </div>
+                        <h2 class="gold-gradient-text fw-bold mb-1" style="font-size: 1.95rem;">{{ translate('Provider Registration') }}</h2>
+                        <p class="text-white-50 mb-0" style="font-size: 0.9rem;">{{ translate('Sign up to connect and provide premium automotive services') }}</p>
                     </div>
 
                     <form action="{{route('provider.auth.sign-up-submit')}}" method="POST" enctype="multipart/form-data" id="register-vertical-steps">
@@ -444,7 +1070,6 @@
 
     {{--country code --}}
     <span class="system-default-country-code" data-value="us"></span>
-    <link rel="stylesheet" href="{{asset('public/assets/libs/intl-tel-input/css/intlTelInput.css')}}"/>
     <script src="{{ asset('public/assets/libs/intl-tel-input/js/intlTelInput.js') }}"></script>
     <script src="{{ asset('public/assets/libs/intl-tel-input/js/utils.js') }}"></script>
     <script src="{{ asset('public/assets/libs/intl-tel-input/js/intlTelInout-validation.js') }}"></script>
@@ -891,6 +1516,13 @@
         });
 
 
+        $('.togglePassword').on('click', function () {
+            const input = $(this).siblings('input');
+            const type = input.attr('type') === 'password' ? 'text' : 'password';
+            input.attr('type', type);
+            $(this).text(type === 'password' ? 'visibility_off' : 'visibility');
+        });
+
         $('.__right-eye').on('click', function () {
             if ($(this).hasClass('active')) {
                 $(this).removeClass('active')
@@ -905,7 +1537,7 @@
                 $(this).find('i').addClass('tio-invisible')
                 $(this).find('i').removeClass('tio-hidden-outlined')
             }
-        })
+        });
     </script>
 </body>
 </html>

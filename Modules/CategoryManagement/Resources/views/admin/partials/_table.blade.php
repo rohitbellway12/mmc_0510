@@ -9,9 +9,9 @@
                 @can('category_manage_status')
                     <th class="title-color">{{ translate('status') }}</th>
                 @endcan
-                @can('category_manage_status')
+                {{-- @can('category_manage_status')
                     <th class="title-color">{{ translate('Is_Featured') }}</th>
-                @endcan
+                @endcan --}}
                 @canany(['category_delete', 'category_update'])
                     <th class="title-color">{{ translate('action') }}</th>
                 @endcan  
@@ -40,7 +40,7 @@
                             </label>
                         </td>
                     @endcan
-                    @can('category_manage_status')
+                    {{-- @can('category_manage_status')
                         <td>
                             <label class="switcher">
                                 <input class="switcher_input feature-update" type="checkbox"
@@ -48,7 +48,7 @@
                                 <span class="switcher_control"></span>
                             </label>
                         </td>
-                    @endcan
+                    @endcan --}}
                    @canany(['category_delete', 'category_update'])
                         <td>
                             <div class="d-flex gap-2">

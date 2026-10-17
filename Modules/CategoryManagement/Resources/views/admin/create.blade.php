@@ -17,7 +17,7 @@
                         <h2 class="page-title">{{translate('category_setup')}}</h2>
                     </div>
 
-                    @can('category_add')
+                    {{-- @can('category_add')
                         <div class="card category-setup mb-30">
                             <div class="card-body p-30">
                                 <form action="{{route('admin.category.store')}}" method="post"
@@ -117,7 +117,7 @@
                                 </form>
                             </div>
                         </div>
-                    @endcan 
+                    @endcan --}} 
 
                     <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom mx-lg-4 mb-10 gap-3">
                         <ul class="nav nav--tabs">

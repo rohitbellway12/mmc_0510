@@ -262,16 +262,11 @@
 
             <button type="submit" class="btn btn-premium" id="signInBtn">{{ translate('Login to Terminal') }}</button>
 
-            @if (business_config('provider_self_registration', 'provider_config')->live_values ?? 0)
-                <div class="form-footer">
-                    {{ translate('New Partner?') }}
-                    <a href="{{ route('provider.auth.sign-up') }}">{{ translate('Register Now') }}</a>
-                </div>
-            @endif
-
-            <div class="form-footer mt-2">
-                {{ translate('System Administrator?') }}
-                <a href="{{ route('admin.auth.login') }}">{{ translate('Switch to Admin') }}</a>
+            <div class="form-footer mt-3">
+                <span style="color: rgba(255, 255, 255, 0.65);">{{ translate('New Partner?') }}</span>
+                <a href="{{ route('provider.auth.sign-up') }}" style="color: var(--primary); font-weight: 700; text-decoration: none; margin-left: 5px;">
+                    {{ translate('Sign Up / Register Here') }} &rarr;
+                </a>
             </div>
         </form>
     </div>

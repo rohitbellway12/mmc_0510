@@ -1511,7 +1511,7 @@ input:-webkit-autofill:active {
 }
 
 .form-floating > label {
-  background-color: var(--bs-white);
+  background-color: transparent;
   padding: 0.5rem 0.75rem;
   inline-size: -moz-min-content;
   inline-size: min-content;
@@ -2751,7 +2751,7 @@ table.dataTable {
 
 .upload-file__img img {
   aspect-ratio: 1/1;
-  background-color: var(--bs-white);
+  background-color: transparent;
 }
 
 .upload-file__img_banner {
@@ -3876,7 +3876,7 @@ body.aside-folded.open-aside-folded .aside .aside-body li:hover i {
   display: flex;
   row-gap: 0.5rem;
   flex-direction: column;
-  background-color: var(--bs-white);
+  background-color: transparent;
 }
 
 [data-bs-theme=dark] #zone_id,

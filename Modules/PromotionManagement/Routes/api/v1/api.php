@@ -41,7 +41,7 @@ Route::group(['prefix' => 'customer', 'as' => 'customer.', 'namespace' => 'Api\V
         Route::get('/', 'BannerController@index');
     });
 
-    Route::group(['prefix' => 'notification', 'as' => 'notification.',], function () {
+    Route::group(['prefix' => 'notification', 'as' => 'notification.', 'middleware' => ['auth:api']], function () {
         Route::get('/', 'NotificationController@index');
     });
 

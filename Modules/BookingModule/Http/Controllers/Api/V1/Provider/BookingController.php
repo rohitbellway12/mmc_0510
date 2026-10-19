@@ -328,6 +328,7 @@ class BookingController extends Controller
             'customer',
             'provider',
             'zone',
+            'service_address',
             'serviceman.user',
             'booking_partial_payments',
             'booking_offline_payments',

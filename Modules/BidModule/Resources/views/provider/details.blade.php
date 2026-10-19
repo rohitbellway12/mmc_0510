@@ -32,15 +32,86 @@
                                                     <span class="material-icons text-primary">person</span>
                                                     <h4>{{translate('Customer Information')}}</h4>
                                                 </div>
-                                                <h5 class="text-primary mb-1">{{$post?->customer?->first_name.' '.$post?->customer?->last_name}}</h5>
+                                                @php
+                                                    $customerName = trim(($post?->customer?->first_name ?? '') . ' ' . ($post?->customer?->last_name ?? ''));
+                                                    if (empty($customerName)) {
+                                                        $customerName = $post?->service_address?->contact_person_name ?? translate('Guest Customer');
+                                                    }
+                                                @endphp
+                                                <h5 class="text-primary mb-1">{{ $customerName }}</h5>
                                                 <p class="text-muted fs-12">
                                                     @if($distance)
                                                         {{$distance . ' ' . translate('away from you')}}
                                                     @endif
                                                 </p>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span class="material-icons">map</span>
-                                                    <p>{{Str::limit($post?->service_address?->address??translate('not_available'), 100)}}</p>
+                                                <div class="mt-2 pt-2 border-top">
+                                                    @if(!empty($post?->service_address?->address))
+                                                        <div class="d-flex align-items-start gap-2 mb-2">
+                                                            <span class="material-icons text-primary fs-16 mt-0.5">location_on</span>
+                                                            <div class="fs-13 text-dark">
+                                                                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                                    <strong>{{ $post->service_address->address }}</strong>
+                                                                    @if(!empty($post->service_address->address_label))
+                                                                        <span class="badge bg-light text-primary border" style="font-size: 11px;">{{ ucfirst($post->service_address->address_label) }}</span>
+                                                                    @endif
+                                                                </div>
+
+                                                                @php
+                                                                    $houseFloorParts = collect([
+                                                                        !empty($post->service_address->house) ? translate('House') . ': ' . $post->service_address->house : null,
+                                                                        !empty($post->service_address->floor) ? translate('Floor') . ': ' . $post->service_address->floor : null,
+                                                                    ])->filter()->join(', ');
+
+                                                                    $addressParts = collect([
+                                                                        $post->service_address->street,
+                                                                        $post->service_address->city,
+                                                                        $post->service_address->zip_code,
+                                                                        $post->service_address->country
+                                                                    ])->filter()->unique()->values();
+                                                                @endphp
+
+                                                                @if(!empty($houseFloorParts))
+                                                                    <div class="text-secondary fs-12">
+                                                                        {{ $houseFloorParts }}
+                                                                    </div>
+                                                                @endif
+
+                                                                @if($addressParts->isNotEmpty())
+                                                                    <div class="text-muted fs-12 mt-0.5">
+                                                                        {{ $addressParts->join(', ') }}
+                                                                    </div>
+                                                                @endif
+
+                                                                @if(!empty($post->service_address->lat) && !empty($post->service_address->lon))
+                                                                    <div class="mt-1">
+                                                                        <a href="https://www.google.com/maps?q={{ $post->service_address->lat }},{{ $post->service_address->lon }}" target="_blank" class="text-primary fs-11 text-decoration-underline d-inline-flex align-items-center gap-1">
+                                                                            <span class="material-icons fs-12">open_in_new</span> {{ translate('View on Map') }}
+                                                                        </a>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <div class="d-flex align-items-center gap-2 text-muted fs-12 mb-2">
+                                                            <span class="material-icons fs-14">location_off</span>
+                                                            <span>{{ translate('Address not available') }}</span>
+                                                        </div>
+                                                    @endif
+
+                                                    @if(!empty($post?->service_address?->contact_person_name) || !empty($post?->service_address?->contact_person_number) || !empty($post?->customer?->phone))
+                                                        <div class="d-flex align-items-center gap-2 mt-1 text-muted fs-12">
+                                                            <span class="material-icons fs-14 text-secondary">phone_iphone</span>
+                                                            <span>
+                                                                {{ $post->service_address->contact_person_name ?? $customerName }}
+                                                                @php
+                                                                    $contactPhone = $post->service_address->contact_person_number ?? $post?->customer?->phone;
+                                                                @endphp
+                                                                @if(!empty($contactPhone))
+                                                                    <a href="tel:{{ $contactPhone }}" class="text-primary fw-medium ms-1">{{ $contactPhone }}</a>
+                                                                @endif
+                                                            </span>
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>

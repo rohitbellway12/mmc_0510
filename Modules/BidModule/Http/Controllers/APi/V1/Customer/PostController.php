@@ -130,34 +130,34 @@ class PostController extends Controller
             'car_images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240',
             'damage_description' => 'nullable|string',
             'additional_instructions' => 'array',
-            'service_address_id' => is_null($request['service_address']) ? 'required' : 'nullable',
-            'service_address' => is_null($request['service_address_id']) ? [
+            'service_address_id' => (!empty($request['service_address']) && $request['service_address'] !== 'null') ? 'nullable' : 'required',
+            'service_address' => (empty($request['service_address_id']) || $request['service_address_id'] === 'null') ? [
                 'required',
-                'json',
                 function ($attribute, $value, $fail) {
-                    $decoded = json_decode($value, true);
+                    $decoded = is_array($value) ? $value : json_decode($value, true);
 
-                    if (json_last_error() !== JSON_ERROR_NONE) {
-                        $fail($attribute . ' must be a valid JSON string.');
+                    if (!is_array($decoded)) {
+                        $fail($attribute . ' must be a valid JSON string or object.');
                         return;
                     }
 
-                    if (is_null($decoded['lat']) || $decoded['lat'] == '') $fail($attribute . ' must contain "lat" properties.');
-                    if (is_null($decoded['lon']) || $decoded['lon'] == '') $fail($attribute . ' must contain "lon" properties.');
-                    if (is_null($decoded['address']) || $decoded['address'] == '') $fail($attribute . ' must contain "address" properties.');
-                    if (is_null($decoded['contact_person_name']) || $decoded['contact_person_name'] == '') $fail($attribute . ' must contain "contact_person_name" properties.');
-                    if (is_null($decoded['contact_person_number']) || $decoded['contact_person_number'] == '') $fail($attribute . ' must contain "contact_person_number" properties.');
-                    if (is_null($decoded['address_label']) || $decoded['address_label'] == '') $fail($attribute . ' must contain "address_label" properties.');
+                    if (empty($decoded['lat'])) $fail($attribute . ' must contain "lat" properties.');
+                    if (empty($decoded['lon'])) $fail($attribute . ' must contain "lon" properties.');
+                    if (empty($decoded['address'])) $fail($attribute . ' must contain "address" properties.');
+                    if (empty($decoded['contact_person_name'])) $fail($attribute . ' must contain "contact_person_name" properties.');
+                    if (empty($decoded['contact_person_number'])) $fail($attribute . ' must contain "contact_person_number" properties.');
+                    if (empty($decoded['address_label'])) $fail($attribute . ' must contain "address_label" properties.');
                 },
-            ] : '',
+            ] : 'nullable',
         ]);
 
         if ($validator->fails()) {
             return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
         }
 
-        if (is_null($request['service_address_id'])) {
-            $request['service_address_id'] = $this->add_address(json_decode($request['service_address']), $request->user()->id);
+        if ((empty($request['service_address_id']) || $request['service_address_id'] === 'null') && !empty($request['service_address']) && $request['service_address'] !== 'null') {
+            $decodedAddress = is_string($request['service_address']) ? json_decode($request['service_address']) : json_decode(json_encode($request['service_address']));
+            $request['service_address_id'] = $this->add_address($decodedAddress, $request->user()->id);
         }
 
         // Resolve service IDs (supports single service_id or multiple service_ids[])

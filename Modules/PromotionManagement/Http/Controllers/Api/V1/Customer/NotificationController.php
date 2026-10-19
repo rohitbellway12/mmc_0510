@@ -9,19 +9,13 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Validator;
 use Modules\PromotionManagement\Entities\PushNotification;
-use Modules\UserManagement\Entities\Guest;
-
 class NotificationController extends Controller
 {
     private PushNotification $pushNotification;
-    private mixed $customer_user_id;
-    private bool $is_customer_logged_in;
 
-    public function __construct(PushNotification $pushNotification, Request $request)
+    public function __construct(PushNotification $pushNotification)
     {
         $this->pushNotification = $pushNotification;
-        $this->is_customer_logged_in = (bool)auth('api')->user();
-        $this->customer_user_id = $this->is_customer_logged_in ? auth('api')->user()->id : $request['guest_id'];
     }
 
     /**
@@ -40,25 +34,22 @@ class NotificationController extends Controller
             return response()->json(response_formatter(DEFAULT_400, null, error_processor($validator)), 400);
         }
 
-
-        $createdAt = null;
-        if ($this->is_customer_logged_in) {
-            $customer = auth('api')->user();
-            $createdAt = $customer->created_at;
-        } else {
-            $guest = Guest::find($this->customer_user_id);
-            $createdAt = $guest?->created_at;
+        $customer = auth('api')->user();
+        if (!$customer) {
+            return response()->json(response_formatter(DEFAULT_401), 401);
         }
 
+        $createdAt = $customer->created_at;
+        $customer_user_id = $customer->id;
 
         $pushNotification = $this->pushNotification->ofStatus(1)
             ->when(!is_null(Config::get('zone_id')), function ($query) {
                 $query->whereJsonContains('zone_ids', Config::get('zone_id'));
             })
-            ->where(function ($query) {
+            ->where(function ($query) use ($customer_user_id) {
                $query->whereDoesntHave('pushNotificationUser')
-                    ->orWhereHas('pushNotificationUser', function ($query) {
-                        $query->where('user_id', $this->customer_user_id);
+                    ->orWhereHas('pushNotificationUser', function ($query) use ($customer_user_id) {
+                        $query->where('user_id', $customer_user_id);
                     });
             })
             ->when($createdAt, function ($query) use ($createdAt) {

@@ -7285,4 +7285,6 @@ _Message' => 'Customer notification for provider bid offer
   'Sign up to connect and provide premium automotive services' => 'Sign up to connect and provide premium automotive services',
   'New Partner?' => 'New Partner ',
   'Sign Up / Register Here' => 'Sign Up / Register Here',
+  'View on Map' => 'View on Map',
+  'Open in Google Maps' => 'Open in Google Maps',
 );

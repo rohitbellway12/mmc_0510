@@ -69,37 +69,36 @@ class BookingController extends Controller
             'payment_method' => 'required|in:' . implode(',', array_column(PAYMENT_METHODS, 'key')),
             'zone_id' => 'required|uuid',
             'service_schedule' => 'required_if:service_type,regular|nullable|date',
-            'service_address_id' => is_null($request['service_address']) ? 'required' : 'nullable',
+            'service_address_id' => (!empty($request['service_address']) && $request['service_address'] !== 'null') ? 'nullable' : ($request['service_location'] == 'customer' ? 'required' : 'nullable'),
 
             'post_id' => 'nullable|uuid',
             'provider_id' => 'nullable|uuid',
 
             'guest_id' => $this->isCustomerLoggedIn ? 'nullable' : 'required|uuid',
-            'service_address' => is_null($request['service_address_id']) && $request['service_location'] == 'customer' ? [
+            'service_address' => (empty($request['service_address_id']) || $request['service_address_id'] === 'null') && $request['service_location'] == 'customer' ? [
                 'required',
-                'json',
                 function ($attribute, $value, $fail) {
-                    $decoded = json_decode($value, true);
+                    $decoded = is_array($value) ? $value : json_decode($value, true);
 
-                    if (json_last_error() !== JSON_ERROR_NONE) {
-                        $fail($attribute . ' must be a valid JSON string.');
+                    if (!is_array($decoded)) {
+                        $fail($attribute . ' must be a valid JSON string or object.');
                         return;
                     }
 
-                    if (is_null($decoded['lat']) || $decoded['lat'] == '')
+                    if (empty($decoded['lat']))
                         $fail($attribute . ' must contain "lat" properties.');
-                    if (is_null($decoded['lon']) || $decoded['lon'] == '')
+                    if (empty($decoded['lon']))
                         $fail($attribute . ' must contain "lon" properties.');
-                    if (is_null($decoded['address']) || $decoded['address'] == '')
+                    if (empty($decoded['address']))
                         $fail($attribute . ' must contain "address" properties.');
-                    if (is_null($decoded['contact_person_name']) || $decoded['contact_person_name'] == '')
+                    if (empty($decoded['contact_person_name']))
                         $fail($attribute . ' must contain "contact_person_name" properties.');
-                    if (is_null($decoded['contact_person_number']) || $decoded['contact_person_number'] == '')
+                    if (empty($decoded['contact_person_number']))
                         $fail($attribute . ' must contain "contact_person_number" properties.');
-                    if (is_null($decoded['address_label']) || $decoded['address_label'] == '')
+                    if (empty($decoded['address_label']))
                         $fail($attribute . ' must contain "address_label" properties.');
                 },
-            ] : '',
+            ] : 'nullable',
 
             'is_partial' => 'nullable|in:0,1',
             'service_location' => 'required|in:customer,provider',
@@ -148,8 +147,9 @@ class BookingController extends Controller
 
         $customerUserId = $this->customerUserId;
 
-        if (is_null($request['service_address_id'])) {
-            $request['service_address_id'] = $this->add_address(json_decode($request['service_address']), null, !$this->isCustomerLoggedIn, $request->service_location);
+        if ((empty($request['service_address_id']) || $request['service_address_id'] === 'null') && !empty($request['service_address']) && $request['service_address'] !== 'null') {
+            $decodedAddress = is_string($request['service_address']) ? json_decode($request['service_address']) : json_decode(json_encode($request['service_address']));
+            $request['service_address_id'] = $this->add_address($decodedAddress, $this->isCustomerLoggedIn ? $customerUserId : null, !$this->isCustomerLoggedIn, $request->service_location);
         }
 
         $minimumBookingAmount = (float) (business_config('min_booking_amount', 'booking_setup'))?->live_values;
@@ -541,6 +541,7 @@ class BookingController extends Controller
                 'category',
                 'subCategory:id,name',
                 'serviceman.user',
+                'service_address',
                 'booking_partial_payments',
                 'repeat.scheduleHistories',
                 'repeat.repeatHistories'

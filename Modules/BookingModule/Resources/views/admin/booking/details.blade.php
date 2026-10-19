@@ -47,7 +47,9 @@
                 </div>
                 <div class="d-flex flex-wrap flex-xxl-nowrap gap-3">
                     <div class="d-flex flex-wrap gap-3">
-                        @php($maxBookingAmount = business_config('max_booking_amount', 'booking_setup')->live_values)
+                        @php
+                            $maxBookingAmount = business_config('max_booking_amount', 'booking_setup')->live_values;
+                        @endphp
                         @if (
                             $booking['payment_method'] == 'cash_after_service' &&
                                 $booking->is_verified == '0' &&
@@ -200,7 +202,9 @@
                             href="{{ url()->current() }}?web_page=status">{{ translate('status') }}</a>
                     </li>
                 </ul>
-                @php($max_booking_amount = business_config('max_booking_amount', 'booking_setup')->live_values ?? 0)
+                @php
+                    $max_booking_amount = business_config('max_booking_amount', 'booking_setup')->live_values ?? 0;
+                @endphp
 
                 @if (
                     $booking->is_verified == 2 &&
@@ -388,7 +392,9 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @php($subTotal = 0)
+                                        @php
+                                            $subTotal = 0;
+                                        @endphp
                                         @foreach ($booking->detail as $detail)
                                             <tr>
                                                 <td class="text-wrap ps-lg-3">
@@ -448,7 +454,9 @@
                                                     @endif
                                                 </td>
                                             </tr>
-                                            @php($subTotal += $detail->service_cost * $detail->quantity)
+                                            @php
+                                                $subTotal += $detail->service_cost * $detail->quantity;
+                                            @endphp
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -496,7 +504,9 @@
                                                         {{ with_currency_symbol($booking->total_tax_amount) }}</td>
                                                 </tr>
                                                 @if ($booking->extra_fee > 0)
-                                                    @php($additional_charge_label_name = business_config('additional_charge_label_name', 'booking_setup')->live_values ?? 'Fee')
+                                                    @php
+                                                        $additional_charge_label_name = business_config('additional_charge_label_name', 'booking_setup')->live_values ?? 'Fee';
+                                                    @endphp
                                                     <tr>
                                                         <td class="text-capitalize">{{ $additional_charge_label_name }}
                                                         </td>
@@ -648,7 +658,9 @@
                                         <div class="card-body">
                                             @if ($booking->booking_offline_payments->isNotEmpty())
                                                 <div class="d-flex gap-1 flex-column">
-                                                    @php($offlinePaymentNote = '')
+                                                    @php
+                                                        $offlinePaymentNote = '';
+                                                    @endphp
                                                     @foreach ($booking?->booking_offline_payments?->first()?->customer_information ?? [] as $key => $item)
                                                         <div class="d-flex gap-2">
                                                             @if ($key != 'payment_note')
@@ -730,7 +742,9 @@
                                     </div>
                                 @endif
 
-                                @php($serviceAtProviderPlace = (int) (business_config('service_at_provider_place', 'provider_config')->live_values ?? 0))
+                                @php
+                                    $serviceAtProviderPlace = (int) (business_config('service_at_provider_place', 'provider_config')->live_values ?? 0);
+                                @endphp
                                 <div class="c1-light-bg radius-10">
                                     <div class="border-bottom d-flex align-items-center justify-content-between gap-2 py-3 px-4 mb-2 cursor-pointer section-toggle"
                                         data-bs-toggle="collapse" data-bs-target="#serviceLocationContent">
@@ -741,7 +755,9 @@
                                         <div class="d-flex align-items-center gap-2">
                                             @if ($serviceAtProviderPlace == 1)
                                                 @if ($booking->provider_id)
-                                                    @php($serviceLocation = getProviderSettings(providerId: $booking->provider_id, key: 'service_location', type: 'provider_config'))
+                                                    @php
+                                                        $serviceLocation = getProviderSettings(providerId: $booking->provider_id, key: 'service_location', type: 'provider_config');
+                                                    @endphp
                                                     @if (in_array('customer', $serviceLocation) && in_array('provider', $serviceLocation))
                                                         <div class="btn-group" onclick="event.stopPropagation()">
                                                             @can('booking_edit')
@@ -806,10 +822,56 @@
                                                 </div>
                                                 <div class="mt-3">
                                                     <h5 class="mb-1">{{ translate('Service Location') }}:</h5>
-                                                    <div class="d-flex justify-content-between">
-                                                        <p>{{ Str::limit($booking?->service_address?->address ?? translate('not_available'), 100) }}
-                                                        </p>
-                                                        <span class="material-icons">map</span>
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            @php
+                                                                $addressObj = $booking?->service_address;
+                                                                if (empty($addressObj) && !empty($booking->service_address_location)) {
+                                                                    $addressObj = json_decode($booking->service_address_location);
+                                                                }
+                                                            @endphp
+                                                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                                <p class="mb-0 fw-semibold text-dark">{{ $addressObj?->address ?? translate('not_available') }}</p>
+                                                                @if(!empty($addressObj?->address_label))
+                                                                    <span class="badge bg-light text-primary border" style="font-size: 11px;">{{ ucfirst($addressObj->address_label) }}</span>
+                                                                @endif
+                                                            </div>
+
+                                                            @php
+                                                                $houseFloorParts = collect([
+                                                                    !empty($addressObj?->house) ? translate('House') . ': ' . $addressObj->house : null,
+                                                                    !empty($addressObj?->floor) ? translate('Floor') . ': ' . $addressObj->floor : null,
+                                                                ])->filter()->join(', ');
+
+                                                                $locParts = collect([
+                                                                    $addressObj?->street,
+                                                                    $addressObj?->city,
+                                                                    $addressObj?->zip_code ?? $booking?->postcode,
+                                                                    $addressObj?->country
+                                                                ])->filter()->unique()->values();
+                                                            @endphp
+
+                                                            @if(!empty($houseFloorParts))
+                                                                <div class="text-secondary fs-12 mb-0">
+                                                                    {{ $houseFloorParts }}
+                                                                </div>
+                                                            @endif
+
+                                                            @if($locParts->isNotEmpty())
+                                                                <div class="text-muted fs-12 mb-0">
+                                                                    {{ $locParts->join(', ') }}
+                                                                </div>
+                                                            @endif
+
+                                                            @if(!empty($addressObj?->lat) && !empty($addressObj?->lon))
+                                                                <div class="mt-1">
+                                                                    <a href="https://www.google.com/maps?q={{ $addressObj->lat }},{{ $addressObj->lon }}" target="_blank" class="text-primary fs-11 text-decoration-underline d-inline-flex align-items-center gap-1">
+                                                                        <span class="material-icons fs-12">open_in_new</span> {{ translate('Open in Google Maps') }}
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                        <span class="material-icons text-primary">map</span>
                                                     </div>
                                                 </div>
                                             @endif
@@ -890,8 +952,10 @@
 
                                     <div class="collapse show" id="customerInfoContent">
                                         <div class="py-3 px-4">
-                                            @php($customer_name = $booking?->service_address?->contact_person_name ?? ($booking?->customer ? ($booking->customer->first_name . ' ' . $booking->customer->last_name) : ''))
-                                            @php($customer_phone = $booking?->service_address?->contact_person_number ?? $booking?->customer?->phone)
+                                            @php
+                                                $customer_name = $booking?->service_address?->contact_person_name ?? ($booking?->customer ? ($booking->customer->first_name . ' ' . $booking->customer->last_name) : '');
+                                                $customer_phone = $booking?->service_address?->contact_person_number ?? $booking?->customer?->phone;
+                                            @endphp
 
                                             <div class="media gap-2 flex-wrap">
                                                 @if (!$booking?->is_guest && $booking?->customer)
@@ -923,11 +987,57 @@
                                                                     href="tel:{{ $customer_phone }}">{{ $customer_phone }}</a>
                                                             </li>
                                                         @endif
-                                                        @if (!empty($booking?->service_address?->address))
-                                                            <li>
-                                                                <span class="material-icons">map</span>
-                                                                <p>{{ Str::limit($booking?->service_address?->address ?? translate('not_available'), 100) }}
-                                                                </p>
+                                                        @php
+                                                            $custAddressObj = $booking?->service_address;
+                                                            if (empty($custAddressObj) && !empty($booking->service_address_location)) {
+                                                                $custAddressObj = json_decode($booking->service_address_location);
+                                                            }
+                                                        @endphp
+                                                        @if (!empty($custAddressObj?->address))
+                                                            <li class="align-items-start">
+                                                                <span class="material-icons text-primary mt-1">location_on</span>
+                                                                <div>
+                                                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                                        <p class="mb-0 fw-semibold text-dark">{{ $custAddressObj->address }}</p>
+                                                                        @if(!empty($custAddressObj?->address_label))
+                                                                            <span class="badge bg-light text-primary border" style="font-size: 11px;">{{ ucfirst($custAddressObj->address_label) }}</span>
+                                                                        @endif
+                                                                    </div>
+
+                                                                    @php
+                                                                        $custHouseFloor = collect([
+                                                                            !empty($custAddressObj?->house) ? translate('House') . ': ' . $custAddressObj->house : null,
+                                                                            !empty($custAddressObj?->floor) ? translate('Floor') . ': ' . $custAddressObj->floor : null,
+                                                                        ])->filter()->join(', ');
+
+                                                                        $fullAddressParts = collect([
+                                                                            $custAddressObj?->street,
+                                                                            $custAddressObj?->city,
+                                                                            $custAddressObj?->zip_code ?? $booking?->postcode,
+                                                                            $custAddressObj?->country
+                                                                        ])->filter()->unique()->values();
+                                                                    @endphp
+
+                                                                    @if(!empty($custHouseFloor))
+                                                                        <div class="text-secondary fs-12 mt-0.5">
+                                                                            {{ $custHouseFloor }}
+                                                                        </div>
+                                                                    @endif
+
+                                                                    @if($fullAddressParts->isNotEmpty())
+                                                                        <div class="text-muted fs-12 mt-0.5">
+                                                                            {{ $fullAddressParts->join(', ') }}
+                                                                        </div>
+                                                                    @endif
+
+                                                                    @if(!empty($custAddressObj?->lat) && !empty($custAddressObj?->lon))
+                                                                        <div class="mt-1">
+                                                                            <a href="https://www.google.com/maps?q={{ $custAddressObj->lat }},{{ $custAddressObj->lon }}" target="_blank" class="text-primary fs-11 text-decoration-underline d-inline-flex align-items-center gap-1">
+                                                                                <span class="material-icons fs-12">open_in_new</span> {{ translate('View on Map') }}
+                                                                            </a>
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
                                                             </li>
                                                         @endif
                                                     </ul>

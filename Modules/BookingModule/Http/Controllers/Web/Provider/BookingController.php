@@ -132,7 +132,7 @@ class BookingController extends Controller
         $serviceAtProviderPlace = (int) ((business_config('service_at_provider_place', 'provider_config'))->live_values ?? 0);
         $serviceLocations = getProviderSettings(providerId: $providerId, key: 'service_location', type: 'provider_config') ?? ['customer'];
 
-        $bookings = $this->booking->with(['customer'])
+        $bookings = $this->booking->with(['customer', 'service_address'])
             ->search($request['search'], ['readable_id'])
             ->whereDoesntHave('ignores', function ($query) use ($providerId) {
                 $query->where('provider_id', $providerId);
@@ -282,6 +282,27 @@ class BookingController extends Controller
                     'street' => '',
                     'zip_code' => '',
                     'country' => '',
+                ];
+            }
+        }
+
+        // Fallback: If service_address is empty or null, load from service_address_id or relationship
+        if (empty($booking->service_address)) {
+            $addressId = $booking->service_address_id ?? $booking->customizeBooking?->service_address_id ?? null;
+            $dbAddress = $addressId ? $this->userAddress->find($addressId) : $booking->getRelationValue('service_address');
+            if ($dbAddress) {
+                $booking->service_address = (object)[
+                    'id' => $dbAddress->id,
+                    'address' => $dbAddress->address ?? '',
+                    'contact_person_name' => $dbAddress->contact_person_name ?? ($booking->customer ? ($booking->customer->first_name . ' ' . $booking->customer->last_name) : ''),
+                    'contact_person_number' => $dbAddress->contact_person_number ?? ($booking->customer?->phone ?? ''),
+                    'address_label' => $dbAddress->address_label ?? '',
+                    'lat' => $dbAddress->lat ?? '',
+                    'lon' => $dbAddress->lon ?? '',
+                    'city' => $dbAddress->city ?? '',
+                    'street' => $dbAddress->street ?? '',
+                    'zip_code' => $dbAddress->zip_code ?? '',
+                    'country' => $dbAddress->country ?? '',
                 ];
             }
         }

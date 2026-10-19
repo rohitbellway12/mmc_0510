@@ -59,7 +59,7 @@ class PostController extends Controller
         $bidding_post_validity = $bidding_post_validity > 0 ? $bidding_post_validity : 30;
         $providerId = $request->user()->provider->id;
         $posts = $this->post
-            ->with(['bids.provider', 'addition_instructions', 'service', 'services', 'category', 'sub_category', 'booking', 'customer', 'targeted_providers'])
+            ->with(['bids.provider', 'addition_instructions', 'service', 'services', 'category', 'sub_category', 'booking', 'customer', 'targeted_providers', 'service_address'])
             ->where('is_booked', 0)
             ->whereNotIn('id', $ignored_posts)
             ->where('zone_id', $request->user()->provider->zone_id)

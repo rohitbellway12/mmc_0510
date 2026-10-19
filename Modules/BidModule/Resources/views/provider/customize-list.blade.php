@@ -142,13 +142,29 @@
                                             <td>
                                                 @if($post->customer)
                                                     <div>
-                                                        <div class="customer-name fw-medium">
+                                                        <div class="customer-name fw-semibold text-dark">
                                                             {{$post->customer?->first_name.' '.$post->customer?->last_name}}
                                                         </div>
+                                                        @if(!empty($post->service_address?->address))
+                                                            <div class="text-muted fs-11 mt-1 d-flex align-items-center gap-1" title="{{ $post->service_address?->address }}">
+                                                                <span class="material-icons fs-12 text-primary">location_on</span>
+                                                                <span>{{ Str::limit($post->service_address?->address, 35) }}</span>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 @else
-                                                    <div><small
-                                                            class="disabled">{{translate('Customer not available')}}</small>
+                                                    <div>
+                                                        @if(!empty($post->service_address?->contact_person_name))
+                                                            <div class="customer-name fw-semibold text-dark">{{$post->service_address->contact_person_name}}</div>
+                                                        @else
+                                                            <small class="disabled">{{translate('Customer not available')}}</small>
+                                                        @endif
+                                                        @if(!empty($post->service_address?->address))
+                                                            <div class="text-muted fs-11 mt-1 d-flex align-items-center gap-1" title="{{ $post->service_address?->address }}">
+                                                                <span class="material-icons fs-12 text-primary">location_on</span>
+                                                                <span>{{ Str::limit($post->service_address?->address, 35) }}</span>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 @endif
                                             </td>

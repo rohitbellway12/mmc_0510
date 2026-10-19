@@ -239,12 +239,24 @@
                                                 </td>
                                                 <td>
                                                     @if (isset($booking->customer))
-                                                        {{ Str::limit($booking?->customer?->first_name, 30) }} <br />
-                                                        {{ $booking?->customer?->phone }}
+                                                        <div class="fw-semibold text-dark">{{ Str::limit($booking?->customer?->first_name . ' ' . $booking?->customer?->last_name, 30) }}</div>
+                                                        <div class="text-muted fs-12">{{ $booking?->customer?->phone }}</div>
                                                     @else
-                                                        {{ Str::limit($booking?->service_address?->contact_person_name, 30) }}
-                                                        <br />
-                                                        {{ $booking?->service_address?->contact_person_number }}
+                                                        <div class="fw-semibold text-dark">{{ Str::limit($booking?->service_address?->contact_person_name ?? translate('Guest Customer'), 30) }}</div>
+                                                        <div class="text-muted fs-12">{{ $booking?->service_address?->contact_person_number }}</div>
+                                                    @endif
+                                                    @php
+                                                        $listAddress = $booking?->service_address?->address;
+                                                        if (empty($listAddress) && !empty($booking->service_address_location)) {
+                                                            $dec = json_decode($booking->service_address_location);
+                                                            $listAddress = $dec->address ?? (is_string($booking->service_address_location) ? $booking->service_address_location : null);
+                                                        }
+                                                    @endphp
+                                                    @if(!empty($listAddress))
+                                                        <div class="text-muted fs-11 mt-1 d-flex align-items-center gap-1" title="{{ $listAddress }}">
+                                                            <span class="material-icons fs-12 text-primary">location_on</span>
+                                                            <span>{{ Str::limit($listAddress, 30) }}</span>
+                                                        </div>
                                                     @endif
                                                 </td>
                                                 <td>{{ with_currency_symbol($booking->total_booking_amount) }}</td>

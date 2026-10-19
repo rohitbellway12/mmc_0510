@@ -98,7 +98,6 @@ class Booking extends Model
 
     protected $appends = ['evidence_photos_full_path'];
 
-
     public function service_address(): BelongsTo
     {
         return $this->belongsTo(UserAddress::class, 'service_address_id');
@@ -563,6 +562,21 @@ class Booking extends Model
         });
 
         self::updated(function ($model) {
+            // Keep linked car booking in sync (mirror approach)
+            if ($model->isDirty('booking_status')) {
+                $linkedCarBooking = \Modules\CarHire\Entities\CarBooking::where('booking_id', $model->id)->first();
+                if ($linkedCarBooking && $linkedCarBooking->booking_status !== $model->booking_status) {
+                    $linkedCarBooking->booking_status = $model->booking_status;
+                    if ($model->booking_status === 'completed') {
+                        $linkedCarBooking->is_paid = $model->is_paid ?? $linkedCarBooking->is_paid;
+                        if ($linkedCarBooking->is_paid) {
+                            $linkedCarBooking->payment_status = 'paid';
+                        }
+                    }
+                    $linkedCarBooking->saveQuietly();
+                }
+            }
+
             $status = $model->booking_status;
             $bookingScheduleTimeChange = isNotificationActive(null, 'booking', 'notification', 'user');
             $bookingScheduleTimeChangeProvider = isNotificationActive(null, 'booking', 'notification', 'provider');

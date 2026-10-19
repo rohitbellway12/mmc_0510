@@ -7287,4 +7287,6 @@ _Message' => 'Customer notification for provider bid offer
   'Sign Up / Register Here' => 'Sign Up / Register Here',
   'View on Map' => 'View on Map',
   'Open in Google Maps' => 'Open in Google Maps',
+  'House' => 'House',
+  'Floor' => 'Floor',
 );

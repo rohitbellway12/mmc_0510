@@ -20,7 +20,7 @@
                                     ? 'success'
                                     : ($booking->booking_status == 'canceled'
                                         ? 'danger'
-                                        : 'info')) }}">
+                                        : ($booking->booking_status == 'accepted' ? 'primary' : 'info'))) }}">
                             {{ ucwords($booking->booking_status) }}
                         </span>
                     </div>

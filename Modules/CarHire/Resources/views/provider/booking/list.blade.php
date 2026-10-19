@@ -106,7 +106,13 @@
                                                 </td>
                                                 <td>{{ $booking->created_at->format('d-M-Y') }}</td>
                                                 <td>
-                                                    <span class="badge badge-info">
+                                                    <span class="badge badge-{{ $booking->booking_status == 'ongoing'
+                                                        ? 'warning'
+                                                        : ($booking->booking_status == 'completed'
+                                                            ? 'success'
+                                                            : ($booking->booking_status == 'canceled'
+                                                                ? 'danger'
+                                                                : ($booking->booking_status == 'accepted' ? 'primary' : 'info'))) }}">
                                                         {{ ucfirst($booking->booking_status) }}
                                                     </span>
                                                 </td>

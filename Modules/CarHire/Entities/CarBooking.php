@@ -53,7 +53,7 @@ class CarBooking extends Model
             // Keep linked regular booking in sync (mirror approach)
             if ($model->isDirty('booking_status') && !empty($model->booking_id)) {
                 $linkedBooking = Booking::find($model->booking_id);
-                if ($linkedBooking) {
+                if ($linkedBooking && $linkedBooking->booking_status !== $model->booking_status) {
                     $linkedBooking->booking_status = $model->booking_status;
 
                     // When car booking is completed, regular booking must be marked paid for CAS flows

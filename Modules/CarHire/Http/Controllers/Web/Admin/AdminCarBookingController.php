@@ -31,6 +31,14 @@ class AdminCarBookingController extends Controller
         $bookingStatus = $request->input('booking_status', 'all');
         $search = $request->input('search');
 
+        // Auto-sync any mirrored car bookings with linked regular booking status
+        DB::table('car_bookings')
+            ->join('bookings', 'car_bookings.booking_id', '=', 'bookings.id')
+            ->whereColumn('car_bookings.booking_status', '!=', 'bookings.booking_status')
+            ->update([
+                'car_bookings.booking_status' => DB::raw('`bookings`.`booking_status`'),
+            ]);
+
         $bookings = $this->carBooking->with(['car.provider', 'user'])
             ->when($bookingStatus != 'all', function ($query) use ($bookingStatus) {
                 return $query->where('booking_status', $bookingStatus);
@@ -51,7 +59,12 @@ class AdminCarBookingController extends Controller
      */
     public function details(string $id): Renderable
     {
-        $booking = $this->carBooking->with(['car.provider', 'user'])->findOrFail($id);
+        $booking = $this->carBooking->with(['car.provider', 'user', 'booking'])->findOrFail($id);
+
+        if ($booking->booking && $booking->booking_status !== $booking->booking->booking_status) {
+            $booking->booking_status = $booking->booking->booking_status;
+            $booking->saveQuietly();
+        }
 
         return view('carhire::admin.booking.details', compact('booking'));
     }

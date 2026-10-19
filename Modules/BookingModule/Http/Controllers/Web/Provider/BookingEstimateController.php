@@ -120,7 +120,13 @@ class BookingEstimateController extends Controller
         $categoryIds = $services->pluck('category_id')->unique()->toArray();
         $categories = Category::whereIn('id', $categoryIds)->where('is_active', 1)->get();
 
-        $customers = User::where('user_type', 'customer')->orderBy('first_name', 'asc')->take(500)->get(['id', 'first_name', 'last_name', 'phone', 'email']);
+        $customers = User::where('user_type', 'customer')
+            ->with(['addresses' => function ($q) {
+                $q->latest();
+            }])
+            ->orderBy('first_name', 'asc')
+            ->take(500)
+            ->get(['id', 'first_name', 'last_name', 'phone', 'email']);
 
         // Fetch provider's fleet cars for Car Hire & Chauffeur
         $cars = \Modules\CarHire\Entities\Car::where('provider_id', $provider->id)
@@ -189,8 +195,17 @@ class BookingEstimateController extends Controller
             $estimate->customer_id = $existingCustomer?->id;
             $estimate->customer_name = $request->customer_name;
             $estimate->customer_phone = $request->customer_phone;
-            $estimate->customer_email = $request->customer_email;
-            $estimate->customer_address = $pickupType == 'delivery' ? $request->delivery_address : ($request->customer_address ?? $request->pickup_location);
+            $customerAddressParts = array_filter([
+                $request->filled('customer_house') ? 'House: ' . $request->customer_house : null,
+                $request->filled('customer_floor') ? 'Floor: ' . $request->customer_floor : null,
+                $request->customer_street,
+                $request->customer_city,
+                $request->customer_zip_code,
+                $request->customer_country,
+            ]);
+            $resolvedAddress = !empty($customerAddressParts) ? implode(', ', $customerAddressParts) : $request->customer_address;
+
+            $estimate->customer_address = $pickupType == 'delivery' ? $request->delivery_address : ($resolvedAddress ?? $request->pickup_location);
             $estimate->module_type = $moduleType;
             $estimate->car_id = $car->id;
             $estimate->service_id = null;
@@ -357,7 +372,15 @@ class BookingEstimateController extends Controller
         $estimate->customer_name = $request->customer_name;
         $estimate->customer_phone = $request->customer_phone;
         $estimate->customer_email = $request->customer_email;
-        $estimate->customer_address = $request->customer_address;
+        $customerAddressParts = array_filter([
+            $request->filled('customer_house') ? 'House: ' . $request->customer_house : null,
+            $request->filled('customer_floor') ? 'Floor: ' . $request->customer_floor : null,
+            $request->customer_street,
+            $request->customer_city,
+            $request->customer_zip_code,
+            $request->customer_country,
+        ]);
+        $estimate->customer_address = !empty($customerAddressParts) ? implode(', ', $customerAddressParts) : $request->customer_address;
         $estimate->module_type = 'general';
         $estimate->service_id = $service->id;
         $estimate->category_id = $service->category_id;

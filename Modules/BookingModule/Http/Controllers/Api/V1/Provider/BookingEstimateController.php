@@ -182,6 +182,8 @@ class BookingEstimateController extends Controller
                 'delivery_fee' => 'nullable|numeric|min:0',
                 'security_deposit' => 'nullable|numeric|min:0',
                 'notes' => 'nullable|string',
+                'service_address' => 'nullable',
+                'postcode' => 'nullable|string',
             ];
 
             if ($moduleType === 'chauffeur') {
@@ -222,9 +224,29 @@ class BookingEstimateController extends Controller
             $estimate->provider_id = $provider->id;
             $estimate->customer_id = $existingCustomer?->id;
             $estimate->customer_name = $request->customer_name;
-            $estimate->customer_phone = $request->customer_phone;
-            $estimate->customer_email = $request->customer_email;
-            $estimate->customer_address = $pickupType == 'delivery' ? $request->delivery_address : ($request->customer_address ?? $request->pickup_location);
+            $serviceAddrRaw = $request->service_address ?? null;
+            $serviceAddrDecoded = null;
+            if (!empty($serviceAddrRaw)) {
+                if (is_array($serviceAddrRaw)) {
+                    $serviceAddrDecoded = $serviceAddrRaw;
+                } elseif (is_string($serviceAddrRaw)) {
+                    $serviceAddrDecoded = json_decode($serviceAddrRaw, true);
+                }
+            }
+
+            $customerAddressParts = array_filter([
+                $request->filled('customer_house') ? 'House: ' . $request->customer_house : ($serviceAddrDecoded['house'] ?? null),
+                $request->filled('customer_floor') ? 'Floor: ' . $request->customer_floor : ($serviceAddrDecoded['floor'] ?? null),
+                $request->customer_street ?? ($serviceAddrDecoded['street'] ?? null),
+                $request->customer_city ?? ($serviceAddrDecoded['city'] ?? null),
+                $request->customer_zip_code ?? ($serviceAddrDecoded['zip_code'] ?? ($request->postcode ?? null)),
+                $request->customer_country ?? ($serviceAddrDecoded['country'] ?? null),
+            ]);
+            $resolvedAddress = !empty($serviceAddrDecoded['address']) 
+                ? $serviceAddrDecoded['address'] 
+                : (!empty($customerAddressParts) ? implode(', ', $customerAddressParts) : ($request->customer_address ?? (is_string($serviceAddrRaw) ? $serviceAddrRaw : null)));
+
+            $estimate->customer_address = $pickupType == 'delivery' ? $request->delivery_address : ($resolvedAddress ?? $request->pickup_location);
             $estimate->module_type = $moduleType;
             $estimate->car_id = $car->id;
             $estimate->service_id = null;
@@ -339,6 +361,8 @@ class BookingEstimateController extends Controller
             'customer_phone' => 'required|string|max:30',
             'customer_email' => 'nullable|email|max:191',
             'customer_address' => 'nullable|string',
+            'service_address' => 'nullable',
+            'postcode' => 'nullable|string',
             'service_id' => 'required|uuid',
             'service_schedule' => 'required|date',
             'price' => 'nullable|numeric|min:0',
@@ -405,7 +429,27 @@ class BookingEstimateController extends Controller
         $estimate->customer_name = $request->customer_name;
         $estimate->customer_phone = $request->customer_phone;
         $estimate->customer_email = $request->customer_email;
-        $estimate->customer_address = $request->customer_address;
+        $serviceAddrRaw = $request->service_address ?? null;
+        $serviceAddrDecoded = null;
+        if (!empty($serviceAddrRaw)) {
+            if (is_array($serviceAddrRaw)) {
+                $serviceAddrDecoded = $serviceAddrRaw;
+            } elseif (is_string($serviceAddrRaw)) {
+                $serviceAddrDecoded = json_decode($serviceAddrRaw, true);
+            }
+        }
+
+        $customerAddressParts = array_filter([
+            $request->filled('customer_house') ? 'House: ' . $request->customer_house : ($serviceAddrDecoded['house'] ?? null),
+            $request->filled('customer_floor') ? 'Floor: ' . $request->customer_floor : ($serviceAddrDecoded['floor'] ?? null),
+            $request->customer_street ?? ($serviceAddrDecoded['street'] ?? null),
+            $request->customer_city ?? ($serviceAddrDecoded['city'] ?? null),
+            $request->customer_zip_code ?? ($serviceAddrDecoded['zip_code'] ?? ($request->postcode ?? null)),
+            $request->customer_country ?? ($serviceAddrDecoded['country'] ?? null),
+        ]);
+        $estimate->customer_address = !empty($serviceAddrDecoded['address']) 
+            ? $serviceAddrDecoded['address'] 
+            : (!empty($customerAddressParts) ? implode(', ', $customerAddressParts) : ($request->customer_address ?? (is_string($serviceAddrRaw) ? $serviceAddrRaw : null)));
         $estimate->module_type = 'general';
         $estimate->service_id = $service->id;
         $estimate->category_id = $service->category_id;

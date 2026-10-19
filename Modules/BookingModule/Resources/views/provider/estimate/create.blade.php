@@ -86,10 +86,33 @@
                                     <select class="form-select" id="existing_customer_select">
                                         <option value="">{{ translate('-- Type or Select Existing Customer --') }}</option>
                                         @foreach($customers as $c)
+                                            @php
+                                                $latestAddrObj = $c->addresses->first();
+                                                $formattedAddr = $latestAddrObj?->address;
+                                                if (empty($formattedAddr) && $latestAddrObj) {
+                                                    $parts = array_filter([
+                                                        $latestAddrObj->house ? 'House: ' . $latestAddrObj->house : null,
+                                                        $latestAddrObj->floor ? 'Floor: ' . $latestAddrObj->floor : null,
+                                                        $latestAddrObj->street,
+                                                        $latestAddrObj->city,
+                                                        $latestAddrObj->zip_code,
+                                                        $latestAddrObj->country,
+                                                    ]);
+                                                    $formattedAddr = implode(', ', $parts);
+                                                }
+                                            @endphp
                                             <option value="{{ $c->id }}"
                                                     data-name="{{ $c->first_name }} {{ $c->last_name }}"
                                                     data-phone="{{ $c->phone }}"
-                                                    data-email="{{ $c->email }}">
+                                                    data-email="{{ $c->email }}"
+                                                    data-house="{{ $latestAddrObj->house ?? '' }}"
+                                                    data-floor="{{ $latestAddrObj->floor ?? '' }}"
+                                                    data-street="{{ $latestAddrObj->street ?? '' }}"
+                                                    data-city="{{ $latestAddrObj->city ?? '' }}"
+                                                    data-zip="{{ $latestAddrObj->zip_code ?? '' }}"
+                                                    data-country="{{ $latestAddrObj->country ?? '' }}"
+                                                    data-label="{{ $latestAddrObj->address_label ?? 'Home' }}"
+                                                    data-address="{{ $formattedAddr ?? '' }}">
                                                 {{ $c->first_name }} {{ $c->last_name }} ({{ $c->phone }})
                                             </option>
                                         @endforeach
@@ -114,9 +137,55 @@
                                                placeholder="{{ translate('e.g. customer@example.com') }}" value="{{ old('customer_email') }}">
                                     </div>
                                     <div class="col-12">
-                                        <label class="form-label fw-medium">{{ translate('Customer_Address / Location') }}</label>
-                                        <textarea name="customer_address" id="customer_address" class="form-control" rows="2" 
-                                                  placeholder="{{ translate('Customer home or business address...') }}">{{ old('customer_address') }}</textarea>
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <label class="form-label fw-medium mb-0">{{ translate('Customer_Service_Address') }}</label>
+                                            <span class="badge bg-primary-subtle text-primary border fz-11 px-2 py-1">{{ translate('Structured Address') }}</span>
+                                        </div>
+                                        <div class="row g-2 p-3 border rounded-3 bg-light-subtle">
+                                            <div class="col-sm-6">
+                                                <label class="form-label fz-12 text-muted mb-1">{{ translate('House / Flat No.') }}</label>
+                                                <input type="text" name="customer_house" id="customer_house" class="form-control" 
+                                                       placeholder="{{ translate('e.g. 531 / Flat 4B') }}" value="{{ old('customer_house') }}">
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label fz-12 text-muted mb-1">{{ translate('Floor') }} ({{ translate('Optional') }})</label>
+                                                <input type="text" name="customer_floor" id="customer_floor" class="form-control" 
+                                                       placeholder="{{ translate('e.g. Floor 5') }}" value="{{ old('customer_floor') }}">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label fz-12 text-muted mb-1">{{ translate('Street / Road Address') }}</label>
+                                                <input type="text" name="customer_street" id="customer_street" class="form-control" 
+                                                       placeholder="{{ translate('e.g. 221B Baker Street') }}" value="{{ old('customer_street') }}">
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label fz-12 text-muted mb-1">{{ translate('City / Town') }}</label>
+                                                <input type="text" name="customer_city" id="customer_city" class="form-control" 
+                                                       placeholder="{{ translate('e.g. London / Indore') }}" value="{{ old('customer_city') }}">
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label fz-12 text-dark fw-semibold mb-1 d-flex align-items-center gap-1">
+                                                    <span>{{ translate('Postcode / Zip Code') }}</span>
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="text" name="customer_zip_code" id="customer_zip_code" class="form-control fw-semibold" 
+                                                       placeholder="{{ translate('e.g. NW1 6XE') }}" value="{{ old('customer_zip_code') }}">
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label fz-12 text-muted mb-1">{{ translate('Country') }}</label>
+                                                <input type="text" name="customer_country" id="customer_country" class="form-control" 
+                                                       placeholder="{{ translate('e.g. United Kingdom') }}" value="{{ old('customer_country', 'United Kingdom') }}">
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label fz-12 text-muted mb-1">{{ translate('Address Label') }}</label>
+                                                <select name="customer_address_label" id="customer_address_label" class="form-select">
+                                                    <option value="Home">{{ translate('Home') }}</option>
+                                                    <option value="Office">{{ translate('Office / Business') }}</option>
+                                                    <option value="Garage">{{ translate('Garage / Workshop') }}</option>
+                                                    <option value="Others">{{ translate('Others') }}</option>
+                                                </select>
+                                            </div>
+                                            <input type="hidden" name="customer_address" id="customer_address" value="{{ old('customer_address') }}">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1056,8 +1125,57 @@
                     $('#customer_name').val(opt.data('name'));
                     $('#customer_phone').val(opt.data('phone'));
                     $('#customer_email').val(opt.data('email') || '');
+                    
+                    let house = opt.data('house') || '';
+                    let floor = opt.data('floor') || '';
+                    let street = opt.data('street') || '';
+                    let city = opt.data('city') || '';
+                    let zip = opt.data('zip') || '';
+                    let country = opt.data('country') || '';
+                    let label = opt.data('label') || 'Home';
+                    let rawAddr = opt.data('address') || '';
+
+                    // If street is empty but raw address exists, extract or place in street
+                    if (!street && rawAddr) {
+                        street = rawAddr;
+                    }
+
+                    $('#customer_house').val(house);
+                    $('#customer_floor').val(floor);
+                    $('#customer_street').val(street);
+                    $('#customer_city').val(city);
+                    $('#customer_zip_code').val(zip);
+                    if (country) $('#customer_country').val(country);
+                    if (label) $('#customer_address_label').val(label);
+                    
+                    updateCombinedCustomerAddress();
+
+                    if ($('#delivery_address').length && rawAddr && !$('#delivery_address').val()) {
+                        $('#delivery_address').val(rawAddr);
+                    }
                 }
             });
+
+            function updateCombinedCustomerAddress() {
+                let house = $('#customer_house').val() ? $('#customer_house').val() : '';
+                let floor = $('#customer_floor').val() ? $('#customer_floor').val() : '';
+                let street = $('#customer_street').val() ? $('#customer_street').val() : '';
+                let city = $('#customer_city').val() ? $('#customer_city').val() : '';
+                let zip = $('#customer_zip_code').val() ? $('#customer_zip_code').val() : '';
+                let country = $('#customer_country').val() ? $('#customer_country').val() : '';
+
+                let parts = [];
+                if (house) parts.push(house);
+                if (floor) parts.push(floor);
+                if (street) parts.push(street);
+                if (city) parts.push(city);
+                if (zip) parts.push(zip);
+                if (country) parts.push(country);
+
+                $('#customer_address').val(parts.join(', '));
+            }
+
+            $('#customer_house, #customer_floor, #customer_street, #customer_city, #customer_zip_code, #customer_country').on('input change', updateCombinedCustomerAddress);
 
             // Filter services by category
             $('#category_filter').on('change', function() {

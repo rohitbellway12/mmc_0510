@@ -22,12 +22,12 @@
                     </div>
 
                     @include('businesssettingsmodule::admin.configurations.third-party.map')
-                    @include('businesssettingsmodule::admin.configurations.third-party.recaptcha')
-                    @include('businesssettingsmodule::admin.configurations.third-party.apple-login')
+                    {{-- @include('businesssettingsmodule::admin.configurations.third-party.recaptcha') --}}
+                    {{-- @include('businesssettingsmodule::admin.configurations.third-party.apple-login') --}}
                     @include('businesssettingsmodule::admin.configurations.third-party.config-email')
                     @include('businesssettingsmodule::admin.configurations.third-party.config-sms')
-                    @include('businesssettingsmodule::admin.configurations.third-party.storage-connection')
-                    @include('businesssettingsmodule::admin.configurations.third-party.app-settings')
+                    {{-- @include('businesssettingsmodule::admin.configurations.third-party.storage-connection') --}}
+                    {{-- @include('businesssettingsmodule::admin.configurations.third-party.app-settings') --}}
                 </div>
             </div>
         </div>

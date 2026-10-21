@@ -5,7 +5,7 @@
     </a>
 </li>
 
-<li class="nav-item">
+{{-- <li class="nav-item">
     <a class="nav-link {{ $webPage=='recaptcha' ? 'active' : '' }}"
        href="{{ route('admin.configuration.third-party', 'recaptcha') }}">
         {{translate('recaptcha')}}
@@ -16,7 +16,7 @@
        href="{{ route('admin.configuration.third-party', 'apple-login') }}">
         {{translate('apple_login')}}
     </a>
-</li>
+</li> --}}
 
 <li class="nav-item">
     <a class="nav-link {{ $webPage=='email-config' ?'active':'' }}"
@@ -33,7 +33,7 @@
 </li>
 
 
-<li class="nav-item">
+{{-- <li class="nav-item">
     <a class="nav-link {{ $webPage == 'storage_connection' ? 'active' :'' }}"
        href="{{ route('admin.configuration.third-party', 'storage_connection') }}">
         {{translate('Storage Connection')}}
@@ -45,4 +45,4 @@
        href="{{ route('admin.configuration.third-party', 'app_settings') }}">
         {{translate('App Settings')}}
     </a>
-</li>
+</li> --}}

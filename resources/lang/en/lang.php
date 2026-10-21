@@ -7305,4 +7305,7 @@ _Message' => 'Customer notification for provider bid offer
   'Office / Business' => 'Office / Business',
   'Garage / Workshop' => 'Garage / Workshop',
   'Others' => 'Others',
+  'How to Get
+                                        Credential' => 'How to Get
+                                        Credential',
 );
